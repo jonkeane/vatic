@@ -101,8 +101,11 @@ function VideoPlayer(handle, job)
 
         var url = this.job.frameurl(this.frame);
         this.handle.css("background-image", "url('" + url + "')");
+        this.handle.css("background-repeat", "no-repeat");
 
         this._callback(this.onupdate);
+
+	$("#frameinfo").html(this.frame);
     }
 
     /*

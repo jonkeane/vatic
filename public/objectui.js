@@ -1,13 +1,18 @@
-function TrackObjectUI(button, container, videoframe, job, player, tracks)
+function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, endbutton)
 {
     var me = this;
 
-    this.button = button;
+    this.button = startbutton;
+    this.endbutton = endbutton;
     this.container = container;
     this.videoframe = videoframe;
     this.job = job;
     this.player = player;
     this.tracks = tracks;
+    this.startframe = job.start;
+    this.endframe = job.stop;
+    this.startenabled = true;
+    this.endenabled = true;
 
     this.drawer = new BoxDrawer(videoframe);
 
@@ -18,66 +23,102 @@ function TrackObjectUI(button, container, videoframe, job, player, tracks)
 
     this.objects = [];
 
-    this.startnewobject = function()
+    this.startnewobject = function(start)
     {
-        if (this.button.button("option", "disabled"))
+        if (start == 1 && this.startenabled == false || (start == 2 && this.endenabled == false) )
         {
             return;
         }
+	if ( start == 1 && player.frame >= this.endframe )
+	{
+	    alert('Start frame must be before the end frame');
+	    return;
+	}
+	else if ( start == 2 && player.frame <= this.startframe )
+	{
+	    alert('End frame must be after the start frame');
+	    return;
+	}
 
         tracks.drawingnew(true);
-
         console.log("Starting new track object");
 
         eventlog("newobject", "Start drawing new object");
 
-        //this.instructions.fadeOut();
+        this.instructions.fadeOut();
 
         this.currentcolor = this.pickcolor();
         this.drawer.color = this.currentcolor[0];
-        this.drawer.enable();
+//        this.drawer.enable();
 
-        this.button.button("option", "disabled", true);
+//        this.button.button("option", "disabled", true);
 
         this.currentobject = new TrackObject(this.job, this.player,
                                              this.container,
-                                             this.currentcolor);
+                                             this.currentcolor, this);
         this.currentobject.statedraw();
 
         this.tracks.resizable(false);
         this.tracks.draggable(false);
     }
 
-    this.stopdrawing = function(position)
+    this.stopdrawing = function(position, start)
     {
-        console.log("Received new track object drawing");
+        if (start == 1 && this.startenabled == false || (start == 2 && this.endenabled == false) )
+        {
+            return;
+	}
+	if ( start == 1 && player.frame >= this.endframe )
+	{
+	    return;
+	}
+	else if ( start == 2 && player.frame <= this.startframe )
+	{
+	    return;
+	}
+
+        
+	console.log("Received new track object drawing");
 
         var track = tracks.add(player.frame, position, this.currentcolor[0]);
 
-        this.drawer.disable();
-        ui_disable();
+//        this.drawer.disable();
+//        ui_disable();
 
         this.currentobject.onready.push(function() {
-            me.stopnewobject();
+           // me.stopnewobject();
         });
         
         this.currentobject.initialize(this.counter, track, this.tracks);
-        this.currentobject.stateclassify();
+        this.stopnewobject();
+        this.currentobject.stateclassify(start);
+	if ( start == 1 )
+	{
+	    this.button.button("option", "disabled", true);
+	    this.startframe = player.frame;
+	    this.startenabled = false;
+	}
+	else if ( start == 2 )
+	{
+	    this.endbutton.button("option", "disabled", true);
+	    this.endframe = player.frame;
+	    this.endenabled = false;
+	}
     }
 
     this.stopnewobject = function()
     {
         console.log("Finished new track object");
 
-        ui_enable();
+//        ui_enable();
         tracks.drawingnew(false);
 
         this.objects.push(this.currentobject);
 
-        this.tracks.draggable(true);
+        this.tracks.draggable(false);
         if ($("#annotateoptionsresize:checked").size() == 0)
         {
-            this.tracks.resizable(true);
+            this.tracks.resizable(false);
         }
         else
         {
@@ -87,7 +128,7 @@ function TrackObjectUI(button, container, videoframe, job, player, tracks)
         this.tracks.dim(false);
         this.currentobject.track.highlight(false);
 
-        this.button.button("option", "disabled", false);
+        //this.button.button("option", "disabled", false);
 
         this.counter++;
     }
@@ -96,11 +137,11 @@ function TrackObjectUI(button, container, videoframe, job, player, tracks)
     {
         console.log("Injecting existing object");
 
-        //this.instructions.fadeOut();
+        this.instructions.fadeOut();
 
         this.currentcolor = this.pickcolor();
         var obj = new TrackObject(this.job, this.player,
-                                  container, this.currentcolor);
+                                  container, this.currentcolor, this);
 
         function convert(box)
         {
@@ -116,13 +157,34 @@ function TrackObjectUI(button, container, videoframe, job, player, tracks)
         }
 
         obj.initialize(this.counter, track, this.tracks);
-        obj.finalize(label);
+	var start = 2, framenum = 0;
+	for (var i = 0; i < attributes.length; i++)
+	{
+	    if ( this.job.attributes[label][attributes[i][0]] == "Start" && attributes[i][2] == true )
+	    {
+		framenum = attributes[i][1];
+		start = 1;
+		this.button.button("option", "disabled", true);
+		this.startframe = framenum;
+		this.startenabled = false;
+	    }
+	    else if ( this.job.attributes[label][attributes[i][0]] == "End" && attributes[i][2] == true )
+	    {
+		framenum = attributes[i][1];
+		start = 2;
+		this.endbutton.button("option", "disabled", true);
+		this.endframe = framenum;
+		this.endenabled = false;
+	    }
+	}
 
-        for (var i = 0; i < attributes.length; i++)
-        {
-            track.attributejournals[attributes[i][0]].mark(attributes[i][1], attributes[i][2]);
-            console.log("Injecting attribute " + attributes[i][0] + " at frame " + attributes[i][1] + " to " + attributes[i][2]);
-        }
+	obj.finalize(label, start, framenum);
+
+	for (var i = 0; i < attributes.length; i++)
+	{
+	    track.attributejournals[attributes[i][0]].mark(attributes[i][1], attributes[i][2]);
+	    console.log("Injecting attribute " + attributes[i][0] + " at frame " + attributes[i][1] + " to " + attributes[i][2]);
+	}
 
         obj.statefolddown();
         obj.updatecheckboxes();
@@ -140,20 +202,34 @@ function TrackObjectUI(button, container, videoframe, job, player, tracks)
             },
             disabled: false
         }).click(function() {
-            me.startnewobject();
-        });
+            me.startnewobject(1);
+	    xtl = (me.player.frame*$("#playerslider").width())/(me.player.job.stop);
+	    me.stopdrawing(new Position(xtl, me.player.handle.height()+2, xtl+1, me.player.handle.height()+12), 1);
+	});
 
-        this.drawer.onstopdraw.push(function(position) {
-            me.stopdrawing(position);
-        });
+	this.endbutton.button({
+	    icons: {
+		       primary: "ui-icon-plusthick",
+		   },
+	    disabled: false
+	}).click(function() {
+	    me.startnewobject(2);
+	    xtl = (me.player.frame*$("#playerslider").width())/(me.player.job.stop);
+	    me.stopdrawing(new Position(xtl, me.player.handle.height()+2, xtl+1, me.player.handle.height()+12), 2);
+	});
 
-        var html = "<p>In this video, please track all of these objects:</p>";
+	this.drawer.onstopdraw.push(function(position) {
+	    //    me.stopdrawing(position);
+	});
+
+	var html = "<p>In this video, please mark the Start and End of the following action:</p>";
         html += "<ul>";
         for (var i in this.job.labels)
         {
             html += "<li>" + this.job.labels[i] + "</li>";
         }
         html += "</ul>";
+        html += "<p>Click the above buttons to create your annotation.</p>";
 
         this.instructions = $(html).appendTo(this.container);
     }
@@ -192,7 +268,7 @@ function TrackObjectUI(button, container, videoframe, job, player, tracks)
     }
 }
 
-function TrackObject(job, player, container, color)
+function TrackObject(job, player, container, color, objectui)
 {
     var me = this;
 
@@ -200,6 +276,8 @@ function TrackObject(job, player, container, color)
     this.player = player;
     this.container = container;
     this.color = color;
+    this.attrid = null;
+    this.objectui = objectui;
 
     this.id = null;
     this.track = null;
@@ -285,7 +363,7 @@ function TrackObject(job, player, container, color)
 
     this.statedraw = function()
     {
-        var html = "<p>Draw a box around one of these objects:</p>"; 
+        var html = "<p>Select one of these actions:</p>"; 
 
         html += "<ul>";
         for (var i in this.job.labels)
@@ -293,16 +371,17 @@ function TrackObject(job, player, container, color)
             html += "<li>" + this.job.labels[i] + "</li>";
         }
         html += "</ul>";
-        html += "<p>Do not annotate the same object twice.</p>";
+//        html += "<p>Do not annotate the same object twice.</p>";
 
         this.drawinst = $("<div>" + html + "</div>").appendTo(this.handle);
-        this.drawinst.hide().slideDown();
+        this.drawinst.hide();
+        //this.drawinst.hide().slideDown();
 
         this.container.stop().animate({scrollTop: 0}, 750);
 
     }
 
-    this.stateclassify = function()
+    this.stateclassify = function(start)
     {
         this.drawinst.slideUp(null, function() {
             me.drawinst.remove(); 
@@ -318,12 +397,12 @@ function TrackObject(job, player, container, color)
 
         if (length == 1)
         {
-            this.finalize(firsti);
+            this.finalize(firsti, start);
             this.statefolddown();
         }
         else
         {
-            var html = "<p>What type of object did you just annotate?</p>";
+            var html = "<p>What type of action did you just annotate?</p>";
             for (var i in job.labels)
             {
                 var id = "classification" + this.id + "_" + i;
@@ -353,21 +432,65 @@ function TrackObject(job, player, container, color)
         }
     }
     
-    this.finalize = function(labelid)
+    this.finalize = function(labelid, start, currentframe)
     {
         this.label = labelid;
         this.track.label = labelid;
 
         this.headerdetails = $("<div style='float:right;'></div>").appendTo(this.handle);
         this.header = $("<p class='trackobjectheader'><strong>" + this.job.labels[this.label] + " " + (this.id + 1) + "</strong></p>").appendTo(this.handle).hide().slideDown();
-        //this.opencloseicon = $('<div class="ui-icon ui-icon-triangle-1-e"></div>').prependTo(this.header);
+        this.opencloseicon = $('<div class="ui-icon ui-icon-triangle-1-e"></div>').prependTo(this.header);
         this.details = $("<div class='trackobjectdetails'></div>").appendTo(this.handle).hide();
 
-        this.setupdetails();
+	//this.setupdetails(start);
+	this.player.pause();
 
-        this.updateboxtext();
+	if ( typeof currentframe == 'undefined' )
+	    currentframe = this.player.frame;
 
         this.track.initattributes(this.job.attributes[this.track.label]);
+	currentattr = "0";
+	for ( i in this.job.attributes[this.track.label] )
+	{
+	    if ( start == 1 && this.job.attributes[this.track.label][i] == 'Start' )
+		currentattr = i;
+	    else if ( start == 2 && this.job.attributes[this.track.label][i] == 'End' )
+		currentattr = i;
+	}
+	if ( currentattr == "0" )
+	    return;
+
+	this.track.setattribute(currentattr, true);
+	this.track.notifyupdate();
+	this.attrid = currentattr;
+        
+	this.header = $("<p class='trackobjectheader'><strong>" + this.job.labels[this.label] + " " + this.job.attributes[this.track.label][this.attrid] + " - Frame:" + currentframe + "</strong></p>").appendTo(this.handle).hide().slideDown();
+        
+	this.headerdetails.append("<div style='float:right;'><div class='ui-icon ui-icon-trash' id='trackobject" + this.id + "delete' title='Delete this annotation'></div></div>");
+        $("#trackobject" + this.id + "delete").click(function() {
+
+            if (window.confirm("Delete the " + me.job.labels[me.label] + " " + me.job.attributes[me.track.label][me.attrid] + " annotation?"))
+            {
+                me.remove();
+                eventlog("removeobject", "Deleted an annotation");
+		if ( me.job.attributes[me.track.label][me.attrid] == "End" )
+		{
+		    $("#endbutton").button("option", "disabled", false);
+		    me.objectui.endframe = me.job.stop;
+		    me.objectui.endenabled = true;
+
+		}
+		else if ( me.job.attributes[me.track.label][me.attrid] == "Start" )
+		{
+		    $("#startbutton").button("option", "disabled", false);
+		    me.objectui.startframe = me.job.start;
+		    me.objectui.startenabled = true;
+		}
+		    
+            }
+        });
+
+	this.updateboxtext();
 
         this.header.mouseup(function() {
             me.click();
@@ -383,14 +506,15 @@ function TrackObject(job, player, container, color)
 
     this.updateboxtext = function()
     {
-        var str = "<strong>" + this.job.labels[this.label] + " " + (this.id + 1) + "</strong>";
+        //var str = "<strong>" + this.job.labels[this.label] + " " + (this.id + 1) + "</strong>";
+        var str = "";
 
         var count = 0;
         for (var i in this.job.attributes[this.track.label])
         {
             if (this.track.estimateattribute(i, this.player.frame))
             {
-                str += "<br>";
+//                str += "<br>";
                 str += this.job.attributes[this.track.label][i];
                 count++;
             }
@@ -404,10 +528,10 @@ function TrackObject(job, player, container, color)
         }
     }
 
-    this.setupdetails = function()
+    this.setupdetails = function(start)
     {
-        this.details.append("<input type='checkbox' id='trackobject" + this.id + "lost'> <label for='trackobject" + this.id + "lost'>Outside of view frame</label><br>");
-        this.details.append("<input type='checkbox' id='trackobject" + this.id + "occluded'> <label for='trackobject" + this.id + "occluded'>Occluded or obstructed</label><br>");
+//        this.details.append("<input type='checkbox' id='trackobject" + this.id + "lost'> <label for='trackobject" + this.id + "lost'>Outside of view frame</label><br>");
+//        this.details.append("<input type='checkbox' id='trackobject" + this.id + "occluded'> <label for='trackobject" + this.id + "occluded'>Occluded or obstructed</label><br>");
 
         for (var i in this.job.attributes[this.track.label])
         {
@@ -442,7 +566,7 @@ function TrackObject(job, player, container, color)
         $("#trackobject" + this.id + "lost").click(function() {
             me.player.pause();
 
-            var outside = $(this).is(":checked");
+            var outside = $(this).attr("checked");
             me.track.setoutside(outside);
             me.track.notifyupdate();
 
@@ -458,7 +582,7 @@ function TrackObject(job, player, container, color)
         $("#trackobject" + this.id + "occluded").click(function() {
             me.player.pause();
 
-            var occlusion = $(this).is(":checked");
+            var occlusion = $(this).attr("checked");
             me.track.setocclusion(occlusion);
             me.track.notifyupdate();
 

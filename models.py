@@ -3,12 +3,11 @@ import turkic.models
 from sqlalchemy import Column, Integer, Float, String, Boolean, Text
 from sqlalchemy import ForeignKey, Table, PickleType
 from sqlalchemy.orm import relationship, backref
-import Image
+from PIL import Image
 import vision
 from vision.track.interpolation import LinearFill
 import random
 import logging
-import config
 
 logger = logging.getLogger("vatic.models")
 
@@ -40,36 +39,13 @@ class Video(turkic.database.Base):
 
     @classmethod
     def getframepath(cls, frame, base = None):
-        l1 = frame / 10000
-        l2 = frame / 100
-        path = "{0}/{1}/{2}.jpg".format(l1, l2, frame)
+#        l1 = frame / 10000
+#        l2 = frame / 100
+#       path = "{0}/{1}/{2}.jpg".format(l1, l2, frame)
+        path = "{0}.jpg".format(frame)
         if base is not None:
             path = "{0}/{1}".format(base, path)
         return path
-
-    @property
-    def cost(self):
-        cost = 0
-        for segment in self.segments:
-            cost += segment.cost
-        return cost
-
-    @property
-    def numjobs(self):
-        count = 0
-        for segment in self.segments:
-            for job in segment.jobs:
-                count += 1
-        return count
-
-    @property
-    def numcompleted(self):
-        count = 0
-        for segment in self.segments:
-            for job in segment.jobs:
-                if job.completed:
-                    count += 1
-        return count
 
 class Label(turkic.database.Base):
     __tablename__ = "labels"
@@ -110,13 +86,6 @@ class Segment(turkic.database.Base):
                 paths.extend(job.paths)
         return paths
 
-    @property
-    def cost(self):
-        cost = 0
-        for job in self.jobs:
-            cost += job.cost
-        return cost
-
 class Job(turkic.models.HIT):
     __tablename__ = "jobs"
     __mapper_args__ = {"polymorphic_identity": "jobs"}
@@ -151,18 +120,13 @@ class Job(turkic.models.HIT):
         Invalidates this path because it is poor work. The new job will be
         respawned automatically for different workers to complete.
         """
+	#self.completed = False
+	#self.disable()
+
         self.useful = False
         # is this a training task? if yes, we don't want to respawn
         if not self.istraining:
             return Job(segment = self.segment, group = self.group)
-
-    def check(self):
-        if len(self.paths) > config.maxobjects:
-            raise RuntimeError("Job {0} has too many objects to process "
-                               "payment. Please verify this is not an "
-                               "attempt to hack us and increase the "
-                               "limit in config.py".format(self.id))
-        return True
 
     @property
     def trainingjob(self):
@@ -171,12 +135,6 @@ class Job(turkic.models.HIT):
     @property
     def validator(self):
         return self.segment.video.trainvalidator
-
-    @property
-    def cost(self): 
-        if not self.completed:
-            return 0
-        return self.bonusamount + self.group.cost + self.donatedamount
 
     def __iter__(self):
         return self.paths

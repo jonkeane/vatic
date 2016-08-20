@@ -15,14 +15,11 @@ import vision.track.interpolation
 import turkic.models
 from models import *
 import cStringIO
-import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont
 import qa
 import merge
-import parsedatetime
+import parsedatetime.parsedatetime
 import datetime, time
-import vision.pascal
-import itertools
-from xml.etree import ElementTree
 
 @handler("Decompresses an entire video into frames")
 class extract(Command):
@@ -43,7 +40,8 @@ class extract(Command):
             os.makedirs(args.output)
         except:
             pass
-        sequence = ffmpeg.extract(args.video)
+
+	sequence = ffmpeg.extract(args.video)
         try:
             for frame, image in enumerate(sequence):
                 if frame % 100 == 0:
@@ -62,41 +60,6 @@ class extract(Command):
                 print "Aborted. Cleaning up..."
                 shutil.rmtree(args.output)
             raise
-
-@handler("Formats existing frames ")
-class formatframes(Command):
-    def setup(self):
-        parser = argparse.ArgumentParser()
-        parser.add_argument("video")
-        parser.add_argument("output")
-        parser.add_argument("--extension", default="jpg")
-        parser.add_argument("--no-cleanup",
-            action="store_true", default=False)
-        return parser
-
-    def __call__(self, args):
-        try:
-            os.makedirs(args.output)
-        except:
-            pass
-        extension = ".{0}".format(args.extension)
-        files = os.listdir(args.video)
-        files = (x for x in files if x.endswith(extension))
-        files = [(int(x.split(".")[0]), x) for x in files]
-        files.sort()
-        files = [(x, y) for x, (_, y) in enumerate(files)]
-        if not files:
-            print "No files ending with {0}".format(extension)
-            return
-        for frame, file in files:
-            path = Video.getframepath(frame, args.output)
-            file = os.path.join(args.video, file)
-            try:
-                os.link(file, path)
-            except OSError:
-                os.makedirs(os.path.dirname(path))
-                os.link(file, path)
-        print "Formatted {0} frames".format(len(files))
 
 @handler("Imports a set of video frames")
 class load(LoadCommand):
@@ -125,25 +88,26 @@ class load(LoadCommand):
         return parser
 
     def title(self, args):
-        return "Video annotation"
+        return "Action interval annotation in a video"
 
     def description(self, args):
-        return "Draw boxes around objects moving around in a video."
+        return "Mark the 'Start' and 'End' of an action in a video. Some of the actions that will be in the videos are SitDown, StandUp, HandShake, Kiss, etc."
 
     def cost(self, args):
-        return 0.05
+        return 0.01
 
     def duration(self, args):
-        return 7200 * 3
+        return 300
 
     def keywords(self, args):
-        return "video, annotation, computer, vision"
+        return "video, annotation, computer, vision, action, recognition"
 
     def __call__(self, args, group):
         print "Checking integrity..."
 
         # read first frame to get sizes
         path = Video.getframepath(0, args.location)
+
         try:
             im = Image.open(path)
         except IOError:
@@ -154,18 +118,19 @@ class load(LoadCommand):
         print "Searching for last frame..."
 
         # search for last frame
-        toplevel = max(int(x)
-            for x in os.listdir(args.location))
-        secondlevel = max(int(x)
-            for x in os.listdir("{0}/{1}".format(args.location, toplevel)))
+#        toplevel = max(int(x)
+#            for x in os.listdir(args.location))
+#        secondlevel = max(int(x)
+#            for x in os.listdir("{0}/{1}".format(args.location, toplevel)))
         maxframes = max(int(os.path.splitext(x)[0])
-            for x in os.listdir("{0}/{1}/{2}"
-            .format(args.location, toplevel, secondlevel))) + 1
+            for x in os.listdir("{0}"
+            .format(args.location)))
 
         print "Found {0} frames.".format(maxframes)
+	args.length = maxframes + 1
 
         # can we read the last frame?
-        path = Video.getframepath(maxframes - 1, args.location)
+        path = Video.getframepath(maxframes, args.location)
         try:
             im = Image.open(path)
         except IOError:
@@ -261,10 +226,10 @@ class load(LoadCommand):
                     segment.start = 0
                 if args.for_training_stop:
                     segment.stop = args.for_training_stop
-                    if segment.stop > video.totalframes - 1:
-                        segment.stop = video.totalframes - 1
+                    if segment.stop > video.totalframes:
+                        segment.stop = video.totalframes
                 else:
-                    segment.stop = video.totalframes - 1
+                    segment.stop = video.totalframes
                 job = Job(segment = segment, group = group, ready = False)
                 session.add(segment)
                 session.add(job)
@@ -290,7 +255,7 @@ class load(LoadCommand):
             startframe = args.start_frame
             stopframe = args.stop_frame
             if not stopframe:
-                stopframe = video.totalframes - 1
+                stopframe = video.totalframes
             for start in range(startframe, stopframe, args.length):
                 stop = min(start + args.length + args.overlap + 1,
                            stopframe)
@@ -551,11 +516,9 @@ class dump(DumpCommand):
         parser.add_argument("--pascal", action="store_true", default=False)
         parser.add_argument("--pascal-difficult", type = int, default = 100)
         parser.add_argument("--pascal-skip", type = int, default = 15)
-        parser.add_argument("--pascal-negatives")
         parser.add_argument("--scale", "-s", default = 1.0, type = float)
         parser.add_argument("--dimensions", "-d", default = None)
         parser.add_argument("--original-video", "-v", default = None)
-        parser.add_argument("--lowercase", action="store_true", default=False)
         return parser
 
     def __call__(self, args):
@@ -588,15 +551,13 @@ class dump(DumpCommand):
 
         for track in data:
             track.boxes = [x.transform(scale) for x in track.boxes]
-            if args.lowercase:
-                track.label = track.label.lower()
 
         if args.xml:
             self.dumpxml(file, data)
         elif args.json:
             self.dumpjson(file, data)
         elif args.matlab:
-            self.dumpmatlab(file, data, video, scale)
+            self.dumpmatlab(file, data)
         elif args.pickle:
             self.dumppickle(file, data)
         elif args.labelme:
@@ -606,7 +567,7 @@ class dump(DumpCommand):
                 print "Warning: scale is not 1, yet frames are not resizing!"
                 print "Warning: you should manually update the JPEGImages"
             self.dumppascal(file, video, data, args.pascal_difficult,
-                            args.pascal_skip, args.pascal_negatives)
+                            args.pascal_skip)
         else:
             self.dumptext(file, data)
 
@@ -617,34 +578,26 @@ class dump(DumpCommand):
         else:
             sys.stdout.write(file.getvalue())
 
-    def dumpmatlab(self, file, data, video, scale):
+    def dumpmatlab(self, file, data):
         results = []
         for id, track in enumerate(data):
             for box in track.boxes:
-                if not box.lost:
-                    data = {}
-                    data['id'] = id
-                    data['xtl'] = box.xtl
-                    data['ytl'] = box.ytl
-                    data['xbr'] = box.xbr
-                    data['ybr'] = box.ybr
-                    data['frame'] = box.frame
-                    data['lost'] = box.lost
-                    data['occluded'] = box.occluded
-                    data['label'] = track.label
-                    data['attributes'] = box.attributes
-                    data['generated'] = box.generated
-                    results.append(data)
+                data = {}
+                data['id'] = id
+                data['xtl'] = box.xtl
+                data['ytl'] = box.ytl
+                data['xbr'] = box.xbr
+                data['ybr'] = box.ybr
+                data['frame'] = box.frame
+                data['lost'] = box.lost
+                data['occluded'] = box.occluded
+                data['label'] = track.label
+                data['attributes'] = box.attributes
+                results.append(data)
 
         from scipy.io import savemat as savematlab
         savematlab(file,
-            {"annotations": results,
-             "num_frames": video.totalframes,
-             "slug": video.slug,
-             "skip": video.skip,
-             "width": int(video.width * scale),
-             "height": int(video.height * scale),
-             "scale": scale}, oned_as="row")
+            {"annotations": results}, oned_as="row")
 
     def dumpxml(self, file, data):
         file.write("<annotations count=\"{0}\">\n".format(len(data)))
@@ -831,8 +784,7 @@ class dump(DumpCommand):
         file.write("</annotation>")
         file.write("\n")
     
-    def dumppascal(self, folder, video, data, difficultthresh, skip,
-                   negdir):
+    def dumppascal(self, folder, video, data, difficultthresh, skip):
         byframe = {}
         for track in data:
             for box in track.boxes:
@@ -847,22 +799,9 @@ class dump(DumpCommand):
             os.makedirs("{0}/Annotations".format(folder))
         except:
             pass
-        try:
-            os.makedirs("{0}/ImageSets/Main/".format(folder))
-        except:
-            pass
-        try:
-            os.makedirs("{0}/JPEGImages/".format(folder))
-        except:
-            pass
         
         numdifficult = 0
         numtotal = 0
-
-        pascalds = None
-        allnegatives = set()
-        if negdir:
-            pascalds = vision.pascal.PascalDataset(negdir)
 
         print "Writing annotations..."
         for frame in allframes:
@@ -945,12 +884,16 @@ class dump(DumpCommand):
             file.write("</annotation>")
             file.close()
 
+        try:
+            os.makedirs("{0}/ImageSets/Main/".format(folder))
+        except:
+            pass
+
         print "{0} of {1} are difficult".format(numdifficult, numtotal)
 
         print "Writing image sets..."
         for label, frames in hasit.items():
-            filename = "{0}/ImageSets/Main/{1}_trainval.txt".format(folder,
-                                                                    label)
+            filename = "{0}/ImageSets/Main/{1}_trainval.txt".format(folder, label)
             file = open(filename, "w")
             for frame in allframes:
                 file.write(str(frame+1).zfill(6))
@@ -960,28 +903,6 @@ class dump(DumpCommand):
                 else:
                     file.write("-1")
                 file.write("\n")
-
-            if pascalds:
-                print "Sampling negative VOC for {0}".format(label)
-                negs = itertools.islice(pascalds.find(missing = [label.lower()]), 1000)
-                for neg in negs:
-                    source = "{0}/Annotations/{1}.xml".format(negdir, neg)
-                    tree = ElementTree.parse(source)
-                    tree.find("folder").text = folder
-                    tree.find("filename").text = "n{0}.jpg".format(neg)
-                    try:
-                        os.makedirs(os.path.dirname("{0}/Annotations/n{1}.xml".format(folder, neg)))
-                    except OSError:
-                        pass
-                    try:
-                        os.makedirs(os.path.dirname("{0}/JPEGImages/n{1}.jpg".format(folder, neg)))
-                    except OSError:
-                        pass
-                    tree.write("{0}/Annotations/n{1}.xml".format(folder, neg))
-                    shutil.copyfile("{0}/JPEGImages/{1}.jpg".format(negdir, neg),
-                                    "{0}/JPEGImages/n{1}.jpg".format(folder, neg))
-                    allnegatives.add("n{0}".format(neg))
-                    file.write("n{0} -1\n".format(neg))
             file.close()
 
             train = "{0}/ImageSets/Main/{1}_train.txt".format(folder, label)
@@ -990,12 +911,15 @@ class dump(DumpCommand):
         filename = "{0}/ImageSets/Main/trainval.txt".format(folder)
         file = open(filename, "w")
         file.write("\n".join(str(x+1).zfill(6) for x in allframes))
-        for neg in allnegatives:
-            file.write("n{0}\n".format(neg))
         file.close()
 
         train = "{0}/ImageSets/Main/train.txt".format(folder)
         shutil.copyfile(filename, train)
+
+        try:
+            os.makedirs("{0}/JPEGImages/".format(folder))
+        except:
+            pass
 
         print "Writing JPEG frames..."
         for frame in allframes:
@@ -1029,7 +953,7 @@ class sample(Command):
 
         since = None
         if args.since:
-            since = parsedatetime.Calendar().parse(args.since)
+            since = parsedatetime.parsedatetime.Calendar().parse(args.since)
             since = time.mktime(since[0])
             since = datetime.datetime.fromtimestamp(since)
 
@@ -1094,30 +1018,21 @@ class sample(Command):
                                                     job.hitid))
 
 @handler("Provides a URL to fix annotations during vetting")
-class find(Command):
+class vet(Command):
     def setup(self):
         parser = argparse.ArgumentParser()
-        parser.add_argument("--id")
-        parser.add_argument("--frame", "-f", type = int,
-                            nargs = '?', default = None)
-        parser.add_argument("--hitid")
-        parser.add_argument("--workerid")
+        parser.add_argument("slug")
+        parser.add_argument("frame", type = int, nargs = '?', default = None)
         parser.add_argument("--ids", action="store_true", default = False)
         return parser
 
     def __call__(self, args):
         jobs = session.query(Job)
         jobs = jobs.join(Segment).join(Video)
-
-        if args.id:
-            jobs = jobs.filter(Video.slug == args.id)
-            if args.frame is not None:
-                jobs = jobs.filter(Segment.start <= args.frame)
-                jobs = jobs.filter(Segment.stop >= args.frame)
-        if args.hitid:
-            jobs = jobs.filter(Job.hitid == args.hitid)
-        if args.workerid:
-            jobs = jobs.filter(Job.workerid == args.workerid)
+        jobs = jobs.filter(Video.slug == args.slug)
+        if args.frame is not None:
+            jobs = jobs.filter(Segment.start <= args.frame)
+            jobs = jobs.filter(Segment.stop >= args.frame)
         jobs = jobs.filter(turkic.models.HIT.useful == True)
 
         if jobs.count() > 0:
@@ -1141,11 +1056,11 @@ class listvideos(Command):
     def setup(self):
         parser = argparse.ArgumentParser()
         parser.add_argument("--completed", action="store_true", default=False)
+        parser.add_argument("--incomplete", action="store_true", default=False)
         parser.add_argument("--published", action="store_true", default=False)
         parser.add_argument("--training", action="store_true", default=False)
         parser.add_argument("--count", action="store_true", default=False)
         parser.add_argument("--worker")
-        parser.add_argument("--stats", action="store_true", default=False)
         return parser
 
     def __call__(self, args):
@@ -1167,13 +1082,33 @@ class listvideos(Command):
                 videos = videos.join(Segment)
                 videos = videos.join(Job)
                 videos = videos.filter(Job.completed == True)
+            elif args.incomplete:
+                videos = videos.join(Segment)
+                videos = videos.join(Job)
+                videos = videos.filter(Job.completed == False)
         
         if args.count:
             print videos.count()
         else:
+	    newvideos = dict()
+	    print "Identifier", '-------', 'jobid', '------', 'timeonserver', ' ------------------- HitId', ' ------------------- AssignmentId', ' --------------- WorkerId'
             for video in videos.distinct():
-                print "{0:<25}".format(video.slug),
-                if args.stats:
-                    print "{0:>3}/{1:<8}".format(video.numcompleted, video.numjobs),
-                    print "${0:<15.2f}".format(video.cost),
-                print ""
+#                print video.slug
+		# Print videos sorted by time
+		test = session.query(Job).filter(Job.useful == True)
+		test = test.join(Segment).filter(Segment.videoid == video.id)
+		if test.count() != 1:
+		    print "Error: ", test.count()
+		    break
+		for t in test:
+		    l = list()
+		    if t.timeonserver is None:
+			l.append(datetime.datetime.now())
+		    else:
+			l.append(t.timeonserver)
+		    l.append(t)
+		    newvideos[video.slug] = l
+	    sorted_list = [x for x in newvideos.iteritems()]
+	    sorted_list.sort(key=lambda x: x[1][0]) # sort by key
+	    for k in sorted_list:
+		print k[0], "---", k[1][1].id, "---", k[1][0], "---", k[1][1].hitid, "---", k[1][1].assignmentid, "---", k[1][1].workerid

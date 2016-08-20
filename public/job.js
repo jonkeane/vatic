@@ -16,11 +16,12 @@ function Job(data)
 
     this.frameurl = function(i)
     {
-        folder1 = parseInt(Math.floor(i / 100));
-        folder2 = parseInt(Math.floor(i / 10000));
-        return "frames/" + me.slug + 
-            "/" + folder2 + "/" + folder1 + "/" + parseInt(i) + ".jpg";
-    }
+//        folder1 = parseInt(Math.floor(i / 100));
+//        folder2 = parseInt(Math.floor(i / 10000));
+//        return "frames/" + me.slug + 
+//            "/" + folder2 + "/" + folder1 + "/" + parseInt(i) + ".jpg";
+        return "frames/" + me.slug +  "/" + parseInt(i) + ".jpg";
+   }
 }
 
 function job_import(data)

@@ -6,16 +6,22 @@ function ui_build(job)
     var videoframe = $("#videoframe");
     var player = new VideoPlayer(videoframe, job);
     var tracks = new TrackCollection(player, job);
-    var objectui = new TrackObjectUI($("#newobjectbutton"), $("#objectcontainer"), videoframe, job, player, tracks);
+    var objectui = new TrackObjectUI($("#startbutton"), $("#objectcontainer"), videoframe, job, player, tracks, $("#endbutton"));
 
     ui_setupbuttons(job, player, tracks);
     ui_setupslider(player);
-    ui_setupsubmit(job, tracks);
+    ui_setupsubmit(job, tracks, objectui);
     ui_setupclickskip(job, player, tracks, objectui);
     ui_setupkeyboardshortcuts(job, player);
     ui_loadprevious(job, objectui);
 
-    $("#newobjectbutton").click(function() {
+    $("#startbutton").click(function() {
+        if (!mturk_submitallowed())
+        {
+            $("#turkic_acceptfirst").effect("pulsate");
+        }
+    });
+    $("#endbutton").click(function() {
         if (!mturk_submitallowed())
         {
             $("#turkic_acceptfirst").effect("pulsate");
@@ -26,18 +32,22 @@ function ui_build(job)
 function ui_setup(job)
 {
     var screen = $("<div id='annotatescreen'></div>").appendTo(container);
-
+//            "<td><div id='instructionsbutton' class='button'>Instructions</div><div id='instructions'>Annotate every object, even stationary and obstructed objects, for the entire video.</td>" +
+    var actionstring = null;
+    for ( var key in job.labels )
+	actionstring = job.labels[key];
     $("<table>" + 
         "<tr>" +
-            "<td><div id='instructionsbutton' class='button'>Instructions</div><div id='instructions'>Annotate every object, even stationary and obstructed objects, for the entire video.</td>" +
+            "<td><div id='instructionsbutton' class='button'>Instructions</div><div id='instructions'>Annotate the interval where the action <strong>" + actionstring + "</strong> occurs in the following video.</td>" +
             "<td><div id='topbar'></div></td>" +
         "</tr>" +
         "<tr>" +
               "<td><div id='videoframe'></div></td>" + 
               "<td rowspan='2'><div id='sidebar'></div></td>" +
-          "</tr>" + 
+          "</tr><tr style='height: 15px;' ></tr>" + 
           "<tr>" +
               "<td><div id='bottombar'></div></td>" + 
+              "<td><div id='frameinfobar'></div></td>" + 
           "</tr>" +
           "<tr>" +
               "<td><div id='advancedoptions'></div></td>" +
@@ -45,9 +55,9 @@ function ui_setup(job)
           "</tr>" +
       "</table>").appendTo(screen).css("width", "100%");
 
-
+//    job.width = job.width + 200;
+//    job.height = job.height + 200;
     var playerwidth = Math.max(720, job.width);
-
 
     $("#videoframe").css({"width": job.width + "px",
                           "height": job.height + "px",
@@ -59,12 +69,17 @@ function ui_setup(job)
 
     $("#annotatescreen").css("width", (playerwidth + 205) + "px");
 
+    $("#frameinfobar").css({"padding-left": "20px", "width": "150px"});
+    $("#frameinfobar").append("<div style='float: left;'><strong>Frame: </strong></div><div id='frameinfo'></div>");
+    $("#frameinfo").css({"width": "30px", "padding-left": "10px", "float": "left"});
+
     $("#bottombar").append("<div id='playerslider'></div>");
     $("#bottombar").append("<div class='button' id='rewindbutton'>Rewind</div> ");
     $("#bottombar").append("<div class='button' id='playbutton'>Play</div> ");
 
     $("#topbar").append("<div id='newobjectcontainer'>" +
-        "<div class='button' id='newobjectbutton'>New Object</div></div>");
+        "<div class='button' id='startbutton'>Start</div>" +
+        "<div class='button' id='endbutton'>End</div></div></div>");
 
     $("<div id='objectcontainer'></div>").appendTo("#sidebar");
 
@@ -211,8 +226,11 @@ function ui_setupbuttons(job, player, tracks)
         eventlog("speedcontrol", "FPS = " + player.fps + " and delta = " + player.playdelta);
     });
 
+    tracks.resizable(false);
+    tracks.draggable(false);
+
     $("#annotateoptionsresize").button().click(function() {
-        var resizable = $(this).attr("checked") ? false : true;
+        var resizable = !$(this).attr("checked")
         tracks.resizable(resizable);
 
         if (resizable)
@@ -277,7 +295,7 @@ function ui_setupkeyboardshortcuts(job, player)
         }
         else if (keycode == 110)
         {
-            $("#newobjectbutton").click();
+            $("#startbutton").click();
         }
         else if (keycode == 104)
         {
@@ -391,16 +409,19 @@ function ui_setupclickskip(job, player, tracks, objectui)
         {
             console.log("Key frame hit");
             player.pause();
-            $("#newobjectbutton").button("option", "disabled", false);
+            $("#startbutton").button("option", "disabled", false);
+            $("#endbutton").button("option", "disabled", false);
             $("#playbutton").button("option", "disabled", false);
-            tracks.draggable(true);
-            tracks.resizable(ui_canresize());
+            tracks.draggable(false);
+            tracks.resizable(false);
+            //tracks.resizable(ui_canresize());
             tracks.recordposition();
             objectui.enable();
         }
         else
         {
-            $("#newobjectbutton").button("option", "disabled", true);
+            $("#startbutton").button("option", "disabled", true);
+            $("#endbutton").button("option", "disabled", true);
             $("#playbutton").button("option", "disabled", true);
             tracks.draggable(false);
             tracks.resizable(false);
@@ -431,7 +452,7 @@ function ui_loadprevious(job, objectui)
     });
 }
 
-function ui_setupsubmit(job, tracks)
+function ui_setupsubmit(job, tracks, objectui)
 {
     $("#submitbutton").button({
         icons: {
@@ -439,11 +460,11 @@ function ui_setupsubmit(job, tracks)
         }
     }).click(function() {
         if (ui_disabled) return;
-        ui_submit(job, tracks);
+        ui_submit(job, tracks, objectui);
     });
 }
 
-function ui_submit(job, tracks)
+function ui_submit(job, tracks, objectui)
 {
     console.dir(tracks);
     console.log("Start submit - status: " + tracks.serialize());
@@ -452,6 +473,17 @@ function ui_submit(job, tracks)
     {
         alert("Please accept the task before you submit.");
         return;
+    }
+
+    if ( objectui.startenabled != false || objectui.endenabled != false )
+    {
+	alert("Please mark both 'Start' and 'End' of the action in the video");
+	return;
+    }
+    if ( objectui.endframe - objectui.startframe < 10 )
+    {
+	alert("Please select 'Start' and 'End' with a minimum separation of 10 frames");
+	return;
     }
 
     /*if (mturk_isassigned() && !mturk_isoffline())
@@ -484,7 +516,7 @@ function ui_submit(job, tracks)
                 {
                     note.remove();
                     overlay.remove();
-                    ui_enable();
+                    ui_enable(1);
                     console.log("Validation failed!");
                     ui_submit_failedvalidation();
                 }
@@ -513,7 +545,7 @@ function ui_submit(job, tracks)
             window.setTimeout(function() {
                 note.remove();
                 overlay.remove();
-                ui_enable();
+                ui_enable(1);
             }, 1000);
         }
         else
@@ -522,6 +554,7 @@ function ui_submit(job, tracks)
                 redirect();
             }, 1000);
         }
+
     }
 
     if (job.training)
@@ -564,8 +597,8 @@ function ui_submit_failedvalidation()
     h.append("<p>Please review the instructions, double check your annotations, and submit again. Remember:</p>");
 
     var str = "<ul>";
-    str += "<li>You must label every object.</li>";
-    str += "<li>You must draw your boxes as tightly as possible.</li>";
+    str += "<li>Make your action interval as tightly as possible.</li>";
+    str += "<li>Start of the action should always precede the End.</li>";
     str += "</ul>";
 
     h.append(str);
@@ -614,14 +647,15 @@ function ui_closeinstructions()
     $("#instructionsdialog").remove();
     eventlog("instructions", "Popdown instructions");
 
-    ui_enable();
+    ui_enable(1);
 }
 
 function ui_disable()
 {
     if (ui_disabled++ == 0)
     {
-        $("#newobjectbutton").button("option", "disabled", true);
+        $("#startbutton").button("option", "disabled", true);
+        $("#endbutton").button("option", "disabled", true);
         $("#playbutton").button("option", "disabled", true);
         $("#rewindbutton").button("option", "disabled", true);
         $("#submitbutton").button("option", "disabled", true);
@@ -633,13 +667,16 @@ function ui_disable()
     console.log("UI disabled with count = " + ui_disabled);
 }
 
-function ui_enable()
+function ui_enable(flag)
 {
     if (--ui_disabled == 0)
     {
-        $("#newobjectbutton").button("option", "disabled", false);
-        $("#playbutton").button("option", "disabled", false);
-        $("#rewindbutton").button("option", "disabled", false);
+	if ( typeof flag == 'undefined' ) {
+	    $("#startbutton").button("option", "disabled", false);
+	    $("#endbutton").button("option", "disabled", false);
+	}
+	$("#playbutton").button("option", "disabled", false);
+	$("#rewindbutton").button("option", "disabled", false);
         $("#submitbutton").button("option", "disabled", false);
         $("#playerslider").slider("option", "disabled", false);
 

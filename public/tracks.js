@@ -303,6 +303,7 @@ function TrackCollection(player, job)
      */
     this.draggable = function(value)
     {
+	value = false;
         for (var i in this.tracks)
         {
             this.tracks[i].draggable(value);
@@ -314,6 +315,7 @@ function TrackCollection(player, job)
      */
     this.resizable = function(value)
     {
+	value = false;
         for (var i in this.tracks)
         {
             this.tracks[i].resizable(value);
@@ -434,10 +436,10 @@ function Track(player, color, position)
     this.onupdate = [];
     this.onstartupdate = [];
 
-    this.candrag = true;
-    this.canresize = true;
+    this.candrag = false;
+    this.canresize = false;
 
-    this.locked = false;
+    this.locked = true;
     this.drawingnew = false;
 
     this.journal.mark(this.player.job.start,
@@ -455,7 +457,7 @@ function Track(player, color, position)
      */
     this.pollposition = function()
     {
-        var hidden = this.handle.css("display") == "none";
+        var hidden = this.handle.is(":hidden'");
         this.handle.show();
 
         var pos = this.handle.position();
@@ -663,11 +665,7 @@ function Track(player, color, position)
      */
     this.setlock = function(value)
     {
-        if (this.deleted)
-        {
-            return;
-        }
-
+	value = true;
         this.locked = value;
 
         if (value)
@@ -712,7 +710,6 @@ function Track(player, color, position)
             this.handle.resizable({
                 handles: "n,w,s,e",
                 autoHide: true,
-                ghost: true, /* need to fix this bug soon */
                 start: function() {
                     player.pause();
                     me.notifystartupdate();
@@ -748,6 +745,7 @@ function Track(player, color, position)
                 },
                 cancel: ".boundingboxtext"
             });
+
 
             this.handle.mouseover(function() {
                 if (!me.locked && !me.drawingnew)
@@ -819,11 +817,7 @@ function Track(player, color, position)
 
     this.draggable = function(value)
     {
-        if (this.deleted)
-        {
-            return;
-        }
-
+	value = false;
         this.candrag = value;
 
         if (value && !this.locked && !this.drawingnew)
@@ -838,11 +832,7 @@ function Track(player, color, position)
 
     this.resizable = function(value)
     {
-        if (this.deleted)
-        {
-            return;
-        }
-
+	value = false;
         this.canresize = value;
 
         if (value && !this.locked &&!this.drawingnew)
@@ -985,6 +975,7 @@ function Track(player, color, position)
     }
 
     this.draw(this.player.frame);
+    this.setlock(true);
 }
 
 /*
@@ -1137,8 +1128,8 @@ function Position(xtl, ytl, xbr, ybr, occluded, outside)
     this.ytl = ytl;
     this.xbr = xbr;
     this.ybr = ybr;
-    this.occluded = occluded ? true : false;
-    this.outside = outside ? true : false;
+    this.occluded = occluded ? occluded : false;
+    this.outside = outside ? outside : false;
     this.width = xbr - xtl;
     this.height = ybr - ytl;
 
@@ -1151,6 +1142,7 @@ function Position(xtl, ytl, xbr, ybr, occluded, outside)
     {
         this.ybr = this.ytl + 1;
     }
+
     this.serialize = function()
     {
         return "[" + this.xtl + "," +

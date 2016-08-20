@@ -8,18 +8,13 @@ $(document).ready(function() {
     });
 });
 
-function isIE () {
-  var myNav = navigator.userAgent.toLowerCase();
-  return (myNav.indexOf('msie') != -1) ? parseInt(myNav.split('msie')[1]) : false;
-}
-
 function boot()
 {
     console.log("Booting...");
 
     container = $("#container");
 
-    if (isIE())
+    if ($.browser.msie)
     {
         container.html("<p style='width:500px;'><strong>Sorry!</strong> This application does not currently support Internet Explorer. Please upgrade to a more modern browser to complete this HIT. We recommend <a href='http://www.google.com/chrome' target='_blank'>Google Chrome</a> or <a href='http://www.getfirefox.com' target='_blank'>Mozilla Firefox</a>.</p>");
         return;
@@ -104,8 +99,8 @@ function loadingscreen(job)
             {
                 if (!development && !mturk_isoffline())
                 {
-                    /*$("body").append('<div id="music"><embed src="magic.mp3">' +
-                        '<noembed><bgsound src="magic.mp3"></noembed></div>');*/
+                    $("body").append('<div id="music"><embed src="magic.mp3">' +
+                        '<noembed><bgsound src="magic.mp3"></noembed></div>');
 
                     window.setTimeout(function() {
                         $("#music").remove();

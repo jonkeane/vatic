@@ -1,4 +1,6 @@
 from match import match
+import logging
+logger = logging.getLogger("vatic.qa")
 
 class tolerable(object):
     """
@@ -36,7 +38,6 @@ class tolerable(object):
             return horrible
         if len(firstboxes) != len(secondboxes):
             return horrible
-
         cost = 0
         for f, s in zip(firstboxes, secondboxes):
             if f.lost != s.lost:
