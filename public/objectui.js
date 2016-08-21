@@ -475,51 +475,55 @@ function TrackObject(job, player, container, color, objectui, kind)
         this.opencloseicon = $('<div class="ui-icon ui-icon-triangle-1-e"></div>').prependTo(this.header);
         this.details = $("<div class='trackobjectdetails'></div>").appendTo(this.handle).hide();
 
-      	this.setupdetails(start);
+      	// this.setupdetails(start);
       	this.player.pause();
 
       	if ( typeof currentframe == 'undefined' )
       	    currentframe = this.player.frame;
 
         this.track.initattributes(this.job.attributes[this.track.label]);
-      	currentattr = "0";
-      	for ( i in this.job.attributes[this.track.label] )
-      	{
-      	    if ( start == 1 && this.job.attributes[this.track.label][i] == 'Start' )
-      		currentattr = i;
-      	    else if ( start == 2 && this.job.attributes[this.track.label][i] == 'End' )
-      		currentattr = i;
-      	}
-      	if ( currentattr == "0" )
-      	    return;
+      	// currentattr = "0";
+      	// for ( i in this.job.attributes[this.track.label] )
+      	// {
+      	//     if ( start == 1 && this.job.attributes[this.track.label][i] == 'Start' )
+      	// 	currentattr = i;
+      	//     else if ( start == 2 && this.job.attributes[this.track.label][i] == 'End' )
+      	// 	currentattr = i;
+      	// }
+      	// if ( currentattr == "0" )
+      	//     return;
 
       	// this.track.setattribute(currentattr, true);
       	this.track.notifyupdate();
       	// this.attrid = currentattr;
-        this.attrid = 'test';
 
-      	this.header = $("<p class='trackobjectheader'><strong>" + this.job.labels[this.label] + " " + this.job.attributes[this.track.label][this.attrid] + " - Frame:" + currentframe + "</strong></p>").appendTo(this.handle).hide().slideDown();
+        if ( this.track.kind != 'start' && this.track.kind != 'end' )
+      	    return;
+
+      	this.header = $("<p class='trackobjectheader'><strong>" + this.job.labels[this.label] + " " + this.track.kind + " - Frame:" + currentframe + "</strong></p>").appendTo(this.handle).hide().slideDown();
 
       	this.headerdetails.append("<div style='float:right;'><div class='ui-icon ui-icon-trash' id='trackobject" + this.id + "delete' title='Delete this annotation'></div></div>");
         $("#trackobject" + this.id + "delete").click(function() {
 
-            if (window.confirm("Delete the " + me.job.labels[me.label] + " " + me.job.attributes[me.track.label][me.attrid] + " annotation?"))
+            if (window.confirm("Delete the " + me.job.labels[me.label] + " " + me.track.kind + " annotation?"))
             {
                 me.remove();
                 eventlog("removeobject", "Deleted an annotation");
-		if ( me.job.attributes[me.track.label][me.attrid] == "End" )
-		{
-		    $("#endbutton").button("option", "disabled", false);
-		    me.objectui.endframe = me.job.stop;
-		    me.objectui.endenabled = true;
+                // if ( me.job.attributes[me.track.label][me.attrid] == "End" )
+                if ( me.track.kind == "end" )
+            		{
+            		    $("#endbutton").button("option", "disabled", false);
+            		    me.objectui.endframe = me.job.stop;
+            		    me.objectui.endenabled = true;
 
-		}
-		else if ( me.job.attributes[me.track.label][me.attrid] == "Start" )
-		{
-		    $("#startbutton").button("option", "disabled", false);
-		    me.objectui.startframe = me.job.start;
-		    me.objectui.startenabled = true;
-		}
+            		}
+                // else if ( me.job.attributes[me.track.label][me.attrid] == "Start" )
+                else if ( me.track.kind == "start" )
+            		{
+            		    $("#startbutton").button("option", "disabled", false);
+            		    me.objectui.startframe = me.job.start;
+            		    me.objectui.startenabled = true;
+            		}
 
             }
         });
