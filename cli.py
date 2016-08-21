@@ -305,6 +305,7 @@ class load(LoadCommand):
 
         session.commit()
 
+
         if args.for_training:
             if args.for_training and args.for_training_data:
                 print "Video and ground truth loaded."
