@@ -399,6 +399,22 @@ function TrackObject(job, player, container, color, objectui, kind)
         this.track.remove();
     }
 
+    this.change_word = function(new_word)
+    {
+        console.log("Change word!");
+        console.log(new_word);
+
+        // hit newlabel something is wrong with the callback function here
+        server_post("newlabel", me.label, {"labeltext" : new_word, "videoid": 1}, function() {
+            callback()
+        });
+        // if (!mturk_submitallowed())
+        // {
+        //     alert("Please accept the task before you submit.");
+        //     return;
+        // }
+      }
+
     this.statedraw = function()
     {
         var html = "<p>Select one of these actions:</p>";
@@ -533,6 +549,19 @@ function TrackObject(job, player, container, color, objectui, kind)
 
             }
         });
+
+        this.headerdetails.append("<div style='float:right;'><div class='ui-icon ui-icon-wrench' id='change" + this.id + "word' title='Delete this annotation'></div></div>");
+        $("#change" + this.id + "word").click(function() {
+
+            console.log(me.job.labels[me.label])
+            console.log(me.job.attributes[me.track.label][me.attrid])
+            new_word = window.prompt("Please enter the new word.");
+            {
+                me.change_word(new_word);
+            }
+        });
+
+
 
 	this.updateboxtext();
 
