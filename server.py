@@ -6,6 +6,7 @@ from turkic.server import handler, application
 from turkic.database import session
 import cStringIO
 from models import *
+import re
 
 import logging
 logger = logging.getLogger("vatic.server")
@@ -68,7 +69,7 @@ def readpaths(tracks):
     for label, track, attributes in tracks:
         path = Path()
         path.label = session.query(Label).get(label)
-        
+
         logger.debug("Received a {0} track".format(path.label.text))
 
         for frame, userbox in track.items():
@@ -107,6 +108,41 @@ def savejob(id, tracks):
 
     session.add(job)
     session.commit()
+
+@handler(post = "json")
+def newlabel(id, postdata):
+    # takes an old label id and post data with a new label and video id
+    # then insert it into the labels database
+
+    # strip any charaters that are not in our annotation set
+    # SQL alchemy should quote special characters, but this is a good defense as well.
+    # This allows all letters, numbers, ?, *, [, ], :, #, !, -
+    text = re.sub("[^A-z0-9\?\*\[\]\:\#\!\\-]","",postdata['labeltext'])
+
+    label = Label(text = text)
+    label.videoid = postdata['videoid']
+    session.add(label)
+
+    # add start/end attributes
+    job = session.query(Job).get(postdata['videoid'])
+    segment = job.segment
+    video = segment.video
+    labels = dict((l.id, l.text) for l in video.labels)
+
+    attributes = {}
+    for label in video.labels:
+        attributes[label.id] = dict((a.id, a.text) for a in label.attributes)
+
+    newAttributes = attributes[int(id)]
+    for attributeText in newAttributes.values():
+        attribute = Attribute(text = attributeText)
+        # add label id so these attribute as associated with the new label
+        session.add(attribute)
+        # this connects the attributes with the labels
+        label.attributes.append(attribute)
+
+    session.commit()
+    return 
 
 @handler(post = "json")
 def validatejob(id, tracks):

@@ -163,7 +163,7 @@ class load(LoadCommand):
 
         # create video
         video = Video(slug = args.slug,
-                      location = os.path.realpath(args.location), 
+                      location = os.path.realpath(args.location),
                       width = width,
                       height = height,
                       totalframes = maxframes,
@@ -215,7 +215,7 @@ class load(LoadCommand):
 
         print "Creating segments..."
         # create shots and jobs
-       
+
         if args.for_training:
                 segment = Segment(video = video)
                 if args.for_training_start:
@@ -246,7 +246,7 @@ class load(LoadCommand):
                         stop = min(start + segmentlength + args.overlap + 1,
                                    ustop)
                         segment = Segment(start = start,
-                                          stop = stop, 
+                                          stop = stop,
                                           video = video)
                         job = Job(segment = segment, group = group)
                         session.add(segment)
@@ -381,7 +381,7 @@ class DumpCommand(Command):
         video = video.one()
 
         if args.merge:
-            for boxes, paths in merge.merge(video.segments, 
+            for boxes, paths in merge.merge(video.segments,
                                             threshold = args.merge_threshold):
                 workers = list(set(x.job.workerid for x in paths))
                 tracklet = DumpCommand.Tracklet(paths[0].label.text,
@@ -429,7 +429,7 @@ class visualize(DumpCommand):
 
     def __call__(self, args):
         video, data = self.getdata(args)
-        
+
         # prepend class label
         for track in data:
             for box in track.boxes:
@@ -756,7 +756,7 @@ class dump(DumpCommand):
                     lastframe = box.frame
                 else:
                     output = True
-                    
+
                 if output:
                     file.write("<event>");
                     file.write("<username>anonymous</username>")
@@ -783,7 +783,7 @@ class dump(DumpCommand):
 
         file.write("</annotation>")
         file.write("\n")
-    
+
     def dumppascal(self, folder, video, data, difficultthresh, skip):
         byframe = {}
         for track in data:
@@ -799,7 +799,7 @@ class dump(DumpCommand):
             os.makedirs("{0}/Annotations".format(folder))
         except:
             pass
-        
+
         numdifficult = 0
         numtotal = 0
 
@@ -985,7 +985,7 @@ class sample(Command):
                                     label = True) for x in job.paths]
 
                 if args.frames > job.segment.stop - job.segment.start:
-                    frames = range(job.segment.start, job.segment.stop + 1) 
+                    frames = range(job.segment.start, job.segment.stop + 1)
                 else:
                     frames = random.sample(xrange(job.segment.start,
                                                 job.segment.stop + 1),
@@ -1086,7 +1086,7 @@ class listvideos(Command):
                 videos = videos.join(Segment)
                 videos = videos.join(Job)
                 videos = videos.filter(Job.completed == False)
-        
+
         if args.count:
             print videos.count()
         else:
