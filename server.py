@@ -142,8 +142,8 @@ def newlabel(id, postdata):
         label.attributes.append(attribute)
 
     session.commit()
-    # return label.id
-    return
+    return label.id
+    # return [label.id]
 
 @handler(post = "json")
 def validatejob(id, tracks):

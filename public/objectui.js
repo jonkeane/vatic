@@ -403,9 +403,9 @@ function TrackObject(job, player, container, color, objectui, kind)
     {
         console.log("Change word!");
         console.log(new_word);
-
+        data = JSON.stringify({"labeltext" : new_word, "videoid": 1}, null, 2);
         // hit newlabel something is wrong with the callback function here
-        server_post("newlabel", me.label, {"labeltext" : new_word, "videoid": 1}, function() {
+        server_post("newlabel", me.label, data, function() {
             callback()
         });
         // if (!mturk_submitallowed())
