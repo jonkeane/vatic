@@ -305,6 +305,11 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
     }
 }
 
+
+
+
+
+
 function TrackObject(job, player, container, color, objectui, kind)
 {
     var me = this;
@@ -399,21 +404,36 @@ function TrackObject(job, player, container, color, objectui, kind)
         this.track.remove();
     }
 
-    this.change_word = function(new_word)
+    this.add_word = function(new_word)
     {
         console.log("Change word!");
-        console.log(new_word);
-        data = JSON.stringify({"labeltext" : new_word, "videoid": 1}, null, 2);
-        // hit newlabel something is wrong with the callback function here
-        server_post("newlabel", me.label, data, function() {
-            callback()
-        });
-        // if (!mturk_submitallowed())
-        // {
-        //     alert("Please accept the task before you submit.");
-        //     return;
-        // }
+        data = JSON.stringify({"labeltext" : new_word, "jobid": me.job.jobid}, null, 2);
+        newdata = null;
+        // label must be in a list or  strings/ ints longer than length 1 will separated
+        server_post("newlabel", [me.label], data, function(response){me.change_word(response)});
       }
+
+    this.change_word = function(response, old_label) {
+        console.log("start callback");
+        // update job
+        server_request("getjob", [this.job.jobid, this.job.training], function(resp) {
+            me.update_ui(resp, response)
+        });
+      }
+
+    this.update_ui = function(job, response) {
+      // update the trackobject job and the objectui job.
+      this.job = job_import(job);
+      this.objectui.job = this.job;
+
+      // update labels with the new one.
+      this.label = response.toString();
+      this.track.label = response.toString();
+      // this.attrid update needed
+      // update text?
+      // sthis.finalize(this.label, 1);
+      console.log("stop callback");
+    }
 
     this.statedraw = function()
     {
@@ -456,33 +476,39 @@ function TrackObject(job, player, container, color, objectui, kind)
         }
         else
         {
-            var html = "<p>What type of action did you just annotate?</p>";
-            for (var i in job.labels)
-            {
-                var id = "classification" + this.id + "_" + i;
-                html += "<div class='label'><input type='radio' name='classification" + this.id + "' id='" + id + "'> <label for='" + id + "'>" + job.labels[i] + "</label></div>";
-            }
-
-            this.classifyinst = $("<div>" + html + "</div>").appendTo(this.handle);
-            this.classifyinst.hide().slideDown();
-
-            $("input[name='classification" + this.id + "']").click(function() {
-                me.classifyinst.slideUp(null, function() {
-                    me.classifyinst.remove();
-                });
-
-                for (var i in me.job.labels)
-                {
-                    var id = "classification" + me.id + "_" + i;
-                    if ($("#" + id + ":checked").size() > 0)
-                    {
-                        me.finalize(i);
-                        me.statefolddown();
-                        break;
-                    }
-                }
-
-            });
+              this.finalize(firsti, start);
+              this.statefolddown();
+            // // removed below to not trigger the classifier when there are multiple labels.
+            // // This should be changed to select only labels that are some known value.
+            // // If this known value doesn't exist throw an error (also possibly check the attributes?)
+            // // currently this will grab the *last* label, this should be flipped.
+            // var html = "<p>What type of action did you just annotate?</p>";
+            // for (var i in job.labels)
+            // {
+            //     var id = "classification" + this.id + "_" + i;
+            //     html += "<div class='label'><input type='radio' name='classification" + this.id + "' id='" + id + "'> <label for='" + id + "'>" + job.labels[i] + "</label></div>";
+            // }
+            //
+            // this.classifyinst = $("<div>" + html + "</div>").appendTo(this.handle);
+            // this.classifyinst.hide().slideDown();
+            //
+            // $("input[name='classification" + this.id + "']").click(function() {
+            //     me.classifyinst.slideUp(null, function() {
+            //         me.classifyinst.remove();
+            //     });
+            //
+            //     for (var i in me.job.labels)
+            //     {
+            //         var id = "classification" + me.id + "_" + i;
+            //         if ($("#" + id + ":checked").size() > 0)
+            //         {
+            //             me.finalize(i);
+            //             me.statefolddown();
+            //             break;
+            //         }
+            //     }
+            //
+            // });
         }
     }
 
@@ -557,7 +583,7 @@ function TrackObject(job, player, container, color, objectui, kind)
             console.log(me.job.attributes[me.track.label][me.attrid])
             new_word = window.prompt("Please enter the new word.");
             {
-                me.change_word(new_word);
+                me.add_word(new_word);
             }
         });
 

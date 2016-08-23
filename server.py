@@ -119,19 +119,21 @@ def newlabel(id, postdata):
     # This allows all letters, numbers, ?, *, [, ], :, #, !, -
     text = re.sub("[^A-z0-9\?\*\[\]\:\#\!\\-]","",postdata['labeltext'])
 
-    label = Label(text = text)
-    label.videoid = postdata['videoid']
-    session.add(label)
-
     # add start/end attributes
-    job = session.query(Job).get(postdata['videoid'])
+    job = session.query(Job).get(postdata['jobid'])
     segment = job.segment
     video = segment.video
-    labels = dict((l.id, l.text) for l in video.labels)
+
+    label = Label(text = text, videoid = video.id)
+    session.add(label)
+
+    # labels = dict((l.id, l.text) for l in video.labels)
 
     attributes = {}
-    for label in video.labels:
-        attributes[label.id] = dict((a.id, a.text) for a in label.attributes)
+    for lbl in video.labels:
+        if lbl.id == int(id):
+            # only copy attributes from the old label id
+            attributes[lbl.id] = dict((a.id, a.text) for a in lbl.attributes)
 
     newAttributes = attributes[int(id)]
     for attributeText in newAttributes.values():
@@ -142,8 +144,9 @@ def newlabel(id, postdata):
         label.attributes.append(attribute)
 
     session.commit()
+
     return label.id
-    # return [label.id]
+
 
 @handler(post = "json")
 def validatejob(id, tracks):
