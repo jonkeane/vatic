@@ -430,8 +430,8 @@ function TrackObject(job, player, container, color, objectui, kind)
       this.label = response.toString();
       this.track.label = response.toString();
       // this.attrid update needed
-      // update text?
-      // sthis.finalize(this.label, 1);
+      // update text? $(stuff).appendTo(this.handle) or $().attr()
+      // this.finalize(this.label, 1);
       console.log("stop callback");
     }
 
