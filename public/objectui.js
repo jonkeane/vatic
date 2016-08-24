@@ -642,6 +642,7 @@ function TrackObject(job, player, container, color, objectui, kind)
             new_word = $("#newWord").val();
 
             // remove check, close and add wrench when submited.
+            // wrench goes wonky after a word is submitted once. Possibly due to id issues?
             me.wrench.show();
             me.close.hide();
             me.check.hide();
@@ -652,9 +653,6 @@ function TrackObject(job, player, container, color, objectui, kind)
             headerobj = $( me.handle[0] ).find(".trackobjectheader")[0];
             strongfield = $( headerobj ).find("input")[0];
             $( strongfield ).replaceWith("<strong>" + me.job.labels[me.label] + "</strong>");
-
-            // change cancel back into wrench
-            $( me.wrench ).replaceWith("<div style='float:right;'><div class='ui-icon ui-icon-wrench change" + me.id + "word' title='Change the label for this annotation'></div></div>");
         });
 
         $(".close" + this.id + "word").click(function() {
@@ -664,7 +662,7 @@ function TrackObject(job, player, container, color, objectui, kind)
             $( strongfield ).replaceWith("<strong>" + me.job.labels[me.label] + "</strong>");
 
             // remove check, close and add wrench when closed.
-            me.wrench.show();
+            me.wrench.show(); // wrench doesn't function after cancel
             me.close.hide();
             me.check.hide();
         });
