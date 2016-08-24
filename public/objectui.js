@@ -552,7 +552,7 @@ function TrackObject(job, player, container, color, objectui, kind)
 
         this.headerdetails = $("<div style='float:right;'></div>").appendTo(this.handle);
         // this.header = $("<p class='trackobjectheader'><strong>" + this.job.labels[this.label] + " " + (this.id + 1) + "</strong></p>").appendTo(this.handle).hide().slideDown();
-        this.header = $("<p class='trackobjectheader'><strong>" + this.job.labels[this.label] + "</strong></p>").appendTo(this.handle).hide().slideDown();
+        this.header = $("<p class='trackobjectheader change" + this.id + "word'><strong>" + this.job.labels[this.label] + "</strong></p>").appendTo(this.handle).hide().slideDown();
         this.opencloseicon = $('<div class="ui-icon ui-icon-triangle-1-e"></div>').prependTo(this.header);
         this.details = $("<div class='trackobjectdetails'></div>").appendTo(this.handle).hide();
 
@@ -610,8 +610,8 @@ function TrackObject(job, player, container, color, objectui, kind)
             }
         });
 
-        this.headerdetails.append("<div style='float:right;'><div class='ui-icon ui-icon-wrench' id='change" + this.id + "word' title='Delete this annotation'></div></div>");
-        $("#change" + this.id + "word").click(function() {
+        this.headerdetails.append("<div style='float:right;'><div class='ui-icon ui-icon-wrench change" + this.id + "word' title='Change the label for this annotation'></div></div>");
+        $(".change" + this.id + "word").click(function() {
 
             console.log(me.job.labels[me.label])
             console.log(me.job.attributes[me.track.label][me.attrid])
@@ -619,9 +619,13 @@ function TrackObject(job, player, container, color, objectui, kind)
             headerobj = $( me.handle[0] ).find(".trackobjectheader")[0];
             strongtag = $( headerobj ).find("strong")[0];
             $( strongtag ).replaceWith('<input type="text" id="newWord" value="">');
-            // add check for submit
 
-            // disable shortcut keys
+            // add check for submit
+            me.headerdetails.append("<div style='float:right;'><div class='ui-icon ui-icon-check submit" + this.id + "word' title='Submit the label for this annotation'></div></div>");
+            // add submit function
+            // remove check when submited.
+
+            //  disable shortcut keys
 
             // new_word = window.prompt("Please enter the new word.");
             {
