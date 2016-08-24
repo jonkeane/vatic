@@ -127,8 +127,6 @@ def newlabel(id, postdata):
     label = Label(text = text, videoid = video.id)
     session.add(label)
 
-    # labels = dict((l.id, l.text) for l in video.labels)
-
     attributes = {}
     for lbl in video.labels:
         if lbl.id == int(id):
@@ -145,7 +143,7 @@ def newlabel(id, postdata):
 
     session.commit()
 
-    return label.id
+    return {'labelid': label.id,  'oldlabelid': id, 'newattributes':{label.attributes[0].text: label.attributes[0].id, label.attributes[1].text: label.attributes[1].id}}
 
 
 @handler(post = "json")

@@ -421,17 +421,50 @@ function TrackObject(job, player, container, color, objectui, kind)
         });
       }
 
+    function track_has_label(track, lbl) {
+      var output = [];
+        for(var i=0; i<track.length; i++) {
+            if (track[i].label == lbl)
+            output.push(track[i]);
+        }
+        return output
+    }
+
     this.update_ui = function(job, response) {
       // update the trackobject job and the objectui job.
       this.job = job_import(job);
       this.objectui.job = this.job;
 
-      // update labels with the new one.
-      this.label = response.toString();
-      this.track.label = response.toString();
-      // this.attrid update needed
-      // update text? $(stuff).appendTo(this.handle) or $().attr()
-      // this.finalize(this.label, 1);
+      newlabelid = response['labelid'].toString();
+      oldlabelid = response['oldlabelid'];
+      newattributes = response['newattributes'];
+
+
+      // find tracks with the old label
+      var old_label_objects = track_has_label(this.objectui.objects, oldlabelid)
+
+      // update labels and track labels (possibly only need to do one?)
+      for(var i=0; i<old_label_objects.length; i++) {
+        old_label_objects[i].track.label = newlabelid;
+        old_label_objects[i].label = newlabelid;
+      }
+
+      // update text on the UI
+      for(var i=0; i<old_label_objects.length; i++) {
+        headerobj = $( old_label_objects[i].handle[0] ).find(".trackobjectheader")[0];
+        strongtag = $( headerobj ).find("strong")[0];
+        $( strongtag ).text(this.job.labels[this.label]);
+      }
+
+      // update the attributes journal
+      for(var i=0; i<old_label_objects.length; i++) {
+        if (old_label_objects[i].kind == "start")
+          old_label_objects[i].attrid = newattributes["Start"];
+        else if (old_label_objects[i].kind == "end")
+          old_label_objects[i].attrid = newattributes["End"];
+        else
+        old_label_objects[i].attrid = null;
+      }
       console.log("stop callback");
     }
 
@@ -548,7 +581,8 @@ function TrackObject(job, player, container, color, objectui, kind)
         if ( this.track.kind != 'start' && this.track.kind != 'end' )
       	    return;
 
-      	this.header = $("<p class='trackobjectheader'><strong>" + this.job.labels[this.label] + " " + this.job.attributes[me.track.label][me.attrid] + " - Frame:" + currentframe + "</strong></p>").appendTo(this.handle).hide().slideDown();
+      	// this.header = $("<p class='trackobjectheader'><strong>" + this.job.labels[this.label] + " " + this.job.attributes[me.track.label][me.attrid] + " - Frame:" + currentframe + "</strong></p>").appendTo(this.handle).hide().slideDown();
+        this.header = $("<p class='trackobjectheader'><strong>" + this.job.attributes[me.track.label][me.attrid] + " - Frame:" + currentframe + "</strong></p>").appendTo(this.handle).hide().slideDown();
 
       	this.headerdetails.append("<div style='float:right;'><div class='ui-icon ui-icon-trash' id='trackobject" + this.id + "delete' title='Delete this annotation'></div></div>");
         $("#trackobject" + this.id + "delete").click(function() {
@@ -581,7 +615,15 @@ function TrackObject(job, player, container, color, objectui, kind)
 
             console.log(me.job.labels[me.label])
             console.log(me.job.attributes[me.track.label][me.attrid])
-            new_word = window.prompt("Please enter the new word.");
+
+            headerobj = $( me.handle[0] ).find(".trackobjectheader")[0];
+            strongtag = $( headerobj ).find("strong")[0];
+            $( strongtag ).replaceWith('<input type="text" id="newWord" value="">');
+            // add check for submit
+
+            // disable shortcut keys
+
+            // new_word = window.prompt("Please enter the new word.");
             {
                 me.add_word(new_word);
             }
