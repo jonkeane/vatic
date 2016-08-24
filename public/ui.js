@@ -12,7 +12,7 @@ function ui_build(job)
     ui_setupslider(player);
     ui_setupsubmit(job, tracks, objectui);
     ui_setupclickskip(job, player, tracks, objectui);
-    ui_setupkeyboardshortcuts(job, player);
+    //ui_setupkeyboardshortcuts(job, player);
     ui_loadprevious(job, objectui);
 
     $("#startbutton").click(function() {
