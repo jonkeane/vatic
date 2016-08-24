@@ -217,6 +217,7 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
 
       	for (var i = 0; i < attributes.length; i++)
       	{
+          // error with reading mark?
       	    track.attributejournals[attributes[i][0]].mark(attributes[i][1], attributes[i][2]);
       	    console.log("Injecting attribute " + attributes[i][0] + " at frame " + attributes[i][1] + " to " + attributes[i][2]);
       	}
@@ -610,9 +611,12 @@ function TrackObject(job, player, container, color, objectui, kind)
             }
         });
 
-        this.headerdetails.append("<div style='float:right;'><div class='ui-icon ui-icon-wrench change" + this.id + "word' title='Change the label for this annotation'></div></div>");
+        this.wrench = $("<div style='float:right;'><div class='ui-icon ui-icon-wrench change" + this.id + "word' title='Change the label for this annotation'></div></div>").appendTo(this.headerdetails);
         // add check for submit, hidden by default
         this.check = $("<div style='float:right;'><div class='ui-icon ui-icon-check submit" + this.id + "word' title='Submit the label for this annotation'></div></div>").appendTo(this.headerdetails).hide();
+        // add close for cancel, hidden by default
+        this.close = $("<div style='float:right;'><div class='ui-icon ui-icon-close close" + this.id + "word' title='Delete changes to this word.'></div></div>").appendTo(this.headerdetails).hide();
+
 
         $(".change" + this.id + "word").click(function() {
 
@@ -621,7 +625,13 @@ function TrackObject(job, player, container, color, objectui, kind)
 
             headerobj = $( me.handle[0] ).find(".trackobjectheader")[0];
             strongfield = $( headerobj ).find("strong")[0];
-            $( strongfield ).replaceWith('<input type="text" id="newWord">');
+            $( strongfield ).replaceWith('<input type="text" id="newWord", value="'+me.job.labels[me.label]+'">');
+
+            // force focus into the text field
+
+            // hide the wrench show the cancel button
+            me.wrench.hide();
+            me.close.show();
 
             // show check for submit
             me.check.show();
@@ -630,7 +640,10 @@ function TrackObject(job, player, container, color, objectui, kind)
         $(".submit" + this.id + "word").click(function() {
             // grab new word from field
             new_word = $("#newWord").val();
-            // remove check when submited.
+
+            // remove check, close and add wrench when submited.
+            me.wrench.show();
+            me.close.hide();
             me.check.hide();
 
             me.add_word(new_word);
@@ -639,8 +652,22 @@ function TrackObject(job, player, container, color, objectui, kind)
             headerobj = $( me.handle[0] ).find(".trackobjectheader")[0];
             strongfield = $( headerobj ).find("input")[0];
             $( strongfield ).replaceWith("<strong>" + me.job.labels[me.label] + "</strong>");
+
+            // change cancel back into wrench
+            $( me.wrench ).replaceWith("<div style='float:right;'><div class='ui-icon ui-icon-wrench change" + me.id + "word' title='Change the label for this annotation'></div></div>");
         });
 
+        $(".close" + this.id + "word").click(function() {
+            // change back to text
+            headerobj = $( me.handle[0] ).find(".trackobjectheader")[0];
+            strongfield = $( headerobj ).find("input")[0];
+            $( strongfield ).replaceWith("<strong>" + me.job.labels[me.label] + "</strong>");
+
+            // remove check, close and add wrench when closed.
+            me.wrench.show();
+            me.close.hide();
+            me.check.hide();
+        });
 
 	this.updateboxtext();
 
