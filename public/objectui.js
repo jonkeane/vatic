@@ -611,28 +611,35 @@ function TrackObject(job, player, container, color, objectui, kind)
         });
 
         this.headerdetails.append("<div style='float:right;'><div class='ui-icon ui-icon-wrench change" + this.id + "word' title='Change the label for this annotation'></div></div>");
+        // add check for submit, hidden by default
+        this.check = $("<div style='float:right;'><div class='ui-icon ui-icon-check submit" + this.id + "word' title='Submit the label for this annotation'></div></div>").appendTo(this.headerdetails).hide();
+
         $(".change" + this.id + "word").click(function() {
 
             console.log(me.job.labels[me.label])
             console.log(me.job.attributes[me.track.label][me.attrid])
 
             headerobj = $( me.handle[0] ).find(".trackobjectheader")[0];
-            strongtag = $( headerobj ).find("strong")[0];
-            $( strongtag ).replaceWith('<input type="text" id="newWord" value="">');
+            strongfield = $( headerobj ).find("strong")[0];
+            $( strongfield ).replaceWith('<input type="text" id="newWord">');
 
-            // add check for submit
-            me.headerdetails.append("<div style='float:right;'><div class='ui-icon ui-icon-check submit" + this.id + "word' title='Submit the label for this annotation'></div></div>");
-            // add submit function
-            // remove check when submited.
-
-            //  disable shortcut keys
-
-            // new_word = window.prompt("Please enter the new word.");
-            {
-                me.add_word(new_word);
-            }
+            // show check for submit
+            me.check.show();
         });
 
+        $(".submit" + this.id + "word").click(function() {
+            // grab new word from field
+            new_word = $("#newWord").val();
+            // remove check when submited.
+            me.check.hide();
+
+            me.add_word(new_word);
+
+            // change back to text
+            headerobj = $( me.handle[0] ).find(".trackobjectheader")[0];
+            strongfield = $( headerobj ).find("input")[0];
+            $( strongfield ).replaceWith("<strong>" + me.job.labels[me.label] + "</strong>");
+        });
 
 
 	this.updateboxtext();
