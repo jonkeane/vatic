@@ -527,7 +527,7 @@ function TrackObject(job, player, container, color, objectui, kind)
         if ( this.idupforanno == null){
           // There is no annotation currently being annotated, check if this job
           // has the magic label "fingerspelledword"
-          var magic_label = "fingerspelledword";
+          var magic_label = "";
           var magic_label_id = null;
           for (labelid in this.job.labels)
           {
@@ -540,7 +540,7 @@ function TrackObject(job, player, container, color, objectui, kind)
           if (magic_label_id == null)
           {
             // Throw an error for configuration purposes
-            console.log("There is no label with the vale "+magic_label+". This job is not configured correctly. Please include this label, as well as Start and End attributes.");
+            console.log("There is no label with the value '"+magic_label+"'. This job is not configured correctly. Please include at least '"+magic_label+"' as a label, as well as Start and End attributes (with ~Start ~End after the label).");
           } else {
             id_for_anno = magic_label_id;
           }
@@ -563,6 +563,8 @@ function TrackObject(job, player, container, color, objectui, kind)
         this.headerdetails = $("<div style='float:right;'></div>").appendTo(this.handle);
         // this.header = $("<p class='trackobjectheader'><strong>" + this.job.labels[this.label] + " " + (this.id + 1) + "</strong></p>").appendTo(this.handle).hide().slideDown();
         this.header = $("<p class='trackobjectheader change" + this.id + "word'><strong>" + this.job.labels[this.label] + "</strong></p>").appendTo(this.handle).hide().slideDown();
+
+        // need place holder for when the string is empty. text box? square?
         this.opencloseicon = $('<div class="ui-icon ui-icon-triangle-1-e"></div>').prependTo(this.header);
         this.details = $("<div class='trackobjectdetails'></div>").appendTo(this.handle).hide();
 
@@ -623,6 +625,7 @@ function TrackObject(job, player, container, color, objectui, kind)
         // add close for cancel, hidden by default
         this.close = $("<div style='float:right;'><div class='ui-icon ui-icon-close close" + this.id + "word' title='Delete changes to this word.'></div></div>").appendTo(this.headerdetails).hide();
 
+        // end init functions for finalize, from here down are functions.
 
         $(".change" + this.id + "word").click(function() {
 
@@ -667,6 +670,8 @@ function TrackObject(job, player, container, color, objectui, kind)
           // hide the wrench show the cancel button
           me.wrench.hide();
           me.close.show();
+
+          // need to update the delete function for noncurrent ids
 
           // show check for submit
           me.check.show();
@@ -714,6 +719,15 @@ function TrackObject(job, player, container, color, objectui, kind)
         this.player.onupdate.push(function() {
             me.updateboxtext();
         });
+
+
+      // if there is an empty string, trigger the change word dialog.
+      // Currently only pops up when the annotations is ended.
+      if(this.job.labels[this.label] == "" && this.kind == "end")
+      {
+        console.log("The empty string!");
+        $(".change" + this.id + "word").click();
+      }
     }
 
     this.updateboxtext = function()
