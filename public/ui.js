@@ -530,11 +530,13 @@ function ui_submit(job, tracks, objectui)
     console.log("Start submit - status: " + tracks.serialize());
 
     // Check that all annotations are something other than the default, magic: ""
+    // this excludes tracks that are marked as deleted because they won't be sent
     var magic_label = "";
     for (trackid in tracks.tracks)
     {
-      if (job.labels[tracks.tracks[trackid].label] == magic_label){
-        alert("At least one label is blank. Please type in the word that was fingerspelled");
+      console.log(tracks.tracks[trackid].label);
+      if (tracks.tracks[trackid].deleted == false && objectui.job.labels[tracks.tracks[trackid].label] == magic_label){
+        alert("At least one label is blank. Please click the wrench in the box on the right, and type in the word that was fingerspelled");
         return;
       }
     }
@@ -545,6 +547,9 @@ function ui_submit(job, tracks, objectui)
         return;
     }
 
+    // Currently this checks that the start and stop buttons are disabled to accept.
+    // This should be changed to look through the (not deleted) tracks like is done above
+    // and confirm that each annotation has a start and end.
     if ( objectui.startenabled != false || objectui.endenabled != false )
     {
 	alert("Please mark both 'Start' and 'End' of the action in the video");
