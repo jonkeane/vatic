@@ -212,7 +212,7 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
       	    }
       	}
 
-      	obj.finalize(label, start, framenum);
+        obj.finalize(label, start, framenum);
 
       	for (var i = 0; i < attributes.length; i++)
       	{
@@ -605,9 +605,6 @@ function TrackObject(job, player, container, color, objectui, kind)
       	this.track.setattribute(currentattr, true);
       	this.track.notifyupdate();
       	this.attrid = currentattr;
-
-        if ( this.track.kind != 'start' && this.track.kind != 'end' )
-      	    return;
 
       	// this.header = $("<p class='trackobjectheader'><strong>" + this.job.labels[this.label] + " " + this.job.attributes[me.track.label][me.attrid] + " - Frame:" + currentframe + "</strong></p>").appendTo(this.handle).hide().slideDown();
         this.header = $("<p class='trackobjectheader'><strong>" + this.job.attributes[me.track.label][me.attrid] + " - Frame:" + currentframe + "</strong></p>").appendTo(this.handle).hide().slideDown();
