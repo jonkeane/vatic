@@ -189,7 +189,13 @@ class load(LoadCommand):
         attributecache = {}
         lastlabel = None
         for labeltext in args.labels:
-            if labeltext[0] == "~":
+            # check if the first part of the label is a tilde (that is an attribute)
+            # however, allow empty string to be a label.
+            try:
+                lbl = labeltext[0]
+            except IndexError:
+                lbl = ""
+            if lbl == "~":
                 if lastlabel is None:
                     print "Cannot assign an attribute without a label!"
                     return
