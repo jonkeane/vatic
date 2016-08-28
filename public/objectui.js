@@ -522,7 +522,7 @@ function TrackObject(job, player, container, color, objectui, kind)
 
         if ( this.job.idupforanno == null){
           // There is no annotation currently being annotated, check if this job
-          // has the magic label "fingerspelledword"
+          // has the magic label ""
           var magic_label = "";
           var magic_label_id = null;
           for (labelid in this.job.labels)

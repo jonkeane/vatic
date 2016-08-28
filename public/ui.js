@@ -529,6 +529,16 @@ function ui_submit(job, tracks, objectui)
     console.dir(tracks);
     console.log("Start submit - status: " + tracks.serialize());
 
+    // Check that all annotations are something other than the default, magic: ""
+    var magic_label = "";
+    for (trackid in tracks.tracks)
+    {
+      if (job.labels[tracks.tracks[trackid].label] == magic_label){
+        alert("At least one label is blank. Please type in the word that was fingerspelled");
+        return;
+      }
+    }
+
     if (!mturk_submitallowed())
     {
         alert("Please accept the task before you submit.");
