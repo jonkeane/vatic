@@ -99,9 +99,6 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
 
       var track = tracks.add(player.frame, position, this.currentcolor[0], kind);
 
-  //        this.drawer.disable();
-  //        ui_disable();
-
       this.currentobject.onready.push(function() {
          // me.stopnewobject();
       });
@@ -216,7 +213,6 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
 
       	for (var i = 0; i < attributes.length; i++)
       	{
-          // error with reading mark?
       	    track.attributejournals[attributes[i][0]].mark(attributes[i][1], attributes[i][2]);
       	    console.log("Injecting attribute " + attributes[i][0] + " at frame " + attributes[i][1] + " to " + attributes[i][2]);
       	}
@@ -231,44 +227,39 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
 
     this.setup = function()
     {
-        this.button.button({
-            icons: {
-                primary: "ui-icon-plusthick",
-            },
-            disabled: false
-        }).click(function() {
-            // start = 1
-            me.startnewobject(1);
+      this.button.button({
+        icons: {
+            primary: "ui-icon-plusthick",
+        },
+        disabled: false
+      }).click(function() {
+        // start = 1
+        me.startnewobject(1);
 	    xtl = (me.player.frame*$("#playerslider").width())/(me.player.job.stop);
 	    me.stopdrawing(new Position(xtl, me.player.handle.height()+2, xtl+1, me.player.handle.height()+12), 1);
-	});
+  	  });
 
-	this.endbutton.button({
-	    icons: {
-		       primary: "ui-icon-plusthick",
-		   },
-	    disabled: false
-	}).click(function() {
-      // end = 2
-	    me.startnewobject(2);
-	    xtl = (me.player.frame*$("#playerslider").width())/(me.player.job.stop);
-	    me.stopdrawing(new Position(xtl, me.player.handle.height()+2, xtl+1, me.player.handle.height()+12), 2);
-	});
+    	this.endbutton.button({
+    	    icons: {
+    		       primary: "ui-icon-plusthick",
+    		   },
+    	    disabled: false
+    	}).click(function() {
+          // end = 2
+    	    me.startnewobject(2);
+    	    xtl = (me.player.frame*$("#playerslider").width())/(me.player.job.stop);
+    	    me.stopdrawing(new Position(xtl, me.player.handle.height()+2, xtl+1, me.player.handle.height()+12), 2);
+    	});
 
-	this.drawer.onstopdraw.push(function(position) {
-	    //    me.stopdrawing(position);
-	});
+    	this.drawer.onstopdraw.push(function(position) {
+    	    //    me.stopdrawing(position);
+    	});
 
-	var html = "<p>In this video, please mark the Start and End of the following action:</p>";
-        html += "<ul>";
-        for (var i in this.job.labels)
-        {
-            html += "<li>" + this.job.labels[i] + "</li>";
-        }
-        html += "</ul>";
-        html += "<p>Click the above buttons to create your annotation.</p>";
+      var html = "<p>Please watch the video attentively.</p>"
+      html += "<p> Whenever you see fingerspelling, mark the start and end time frames of the fingerspelling and enter the letters spelled.</p>"
+      html +="<p> The segment you mark should include some buffer on either side to ensure that the entire fingerspelling portion is selected.  This does not have to be precise as long as all of the fingerspelling is included, and ideally none of the non-fingerspelled signs around it. </p>";
 
-        this.instructions = $(html).appendTo(this.container);
+      this.instructions = $(html).appendTo(this.container);
     }
 
     this.disable = function()
@@ -433,20 +424,22 @@ function TrackObject(job, player, container, color, objectui, kind)
     this.update_ui = function(job, response) {
       // update the trackobject job and the objectui job.
       this.job = job_import(job);
-      // this.objectui.job = this.job;
 
       newlabelid = response['labelid'].toString();
       oldlabelid = response['oldlabelid'];
       newattributes = response['newattributes'];
 
+      // change the id up for anno in the objectUI
+      this.job.idupforanno = newlabelid;
 
       // find tracks with the old label
       var old_label_objects = track_has_label(this.objectui.objects, oldlabelid)
 
-      // update labels and track labels (possibly only need to do one?)
+      // update labels, track labels, and jobs for each of the objects
       for(var i=0; i<old_label_objects.length; i++) {
         old_label_objects[i].track.label = newlabelid;
         old_label_objects[i].label = newlabelid;
+        old_label_objects[i].job = this.job;
       }
 
       // update text on the UI
@@ -491,6 +484,9 @@ function TrackObject(job, player, container, color, objectui, kind)
         }
       }
 
+      // update the objectUI
+      this.objectui.job = this.job;
+
       console.log("stop callback");
     }
 
@@ -522,9 +518,9 @@ function TrackObject(job, player, container, color, objectui, kind)
 
         var id_for_anno = 0;
         // do not loop over all labels, but rather start as empty string.
-        // unless there's already an annotation up for annotation, then use that label.
+        // unless there's already an annotation up for annotation, then use the empty label.
 
-        if ( this.idupforanno == null){
+        if ( this.job.idupforanno == null){
           // There is no annotation currently being annotated, check if this job
           // has the magic label "fingerspelledword"
           var magic_label = "";
@@ -547,8 +543,11 @@ function TrackObject(job, player, container, color, objectui, kind)
         }
         else {
           // There is an annotation being annotated, so use that id for new labels
-          id_for_anno = this.idupforanno;
+          id_for_anno = this.job.idupforanno;
         }
+
+        // set id up for anno
+        this.job.idupforanno = id_for_anno;
 
         this.finalize(id_for_anno, start);
         this.statefolddown();
@@ -639,6 +638,7 @@ function TrackObject(job, player, container, color, objectui, kind)
           // If the enter key is pressed, submit the new word
           $(textinput).bind("enterKey",function(e){
             //search two parents up for a checkmark to click (this is pretty fragile!)
+            // errors if there's only one annotation?
             check = $( this.parentElement.parentElement ).find(".ui-icon-check")[0];
              $(check).click();
           });
