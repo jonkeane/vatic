@@ -4,21 +4,22 @@ function Job(data)
 
     this.slug = null;
     this.start = null;
-    this.stop = null; 
-    this.width = null; 
-    this.height = null; 
-    this.skip = null; 
+    this.stop = null;
+    this.width = null;
+    this.height = null;
+    this.skip = null;
     this.perobject = null;
     this.completion = null;
     this.blowradius = null;
     this.thisid = null;
     this.labels = null;
+    this.idupforanno = null;
 
     this.frameurl = function(i)
     {
 //        folder1 = parseInt(Math.floor(i / 100));
 //        folder2 = parseInt(Math.floor(i / 10000));
-//        return "frames/" + me.slug + 
+//        return "frames/" + me.slug +
 //            "/" + folder2 + "/" + folder1 + "/" + parseInt(i) + ".jpg";
         return "frames/" + me.slug +  "/" + parseInt(i) + ".jpg";
    }

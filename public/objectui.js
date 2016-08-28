@@ -520,57 +520,39 @@ function TrackObject(job, player, container, color, objectui, kind)
             me.drawinst.remove();
         });
 
-        var length = 0;
-        var firsti = 0;
+        var id_for_anno = 0;
         // do not loop over all labels, but rather start as empty string.
         // unless there's already an annotation up for annotation, then use that label.
-        for (var i in this.job.labels)
-        {
-            length++;
-            firsti = i;
+
+        if ( this.idupforanno == null){
+          // There is no annotation currently being annotated, check if this job
+          // has the magic label "fingerspelledword"
+          var magic_label = "fingerspelledword";
+          var magic_label_id = null;
+          for (labelid in this.job.labels)
+          {
+            if (this.job.labels[labelid] == magic_label)
+            {
+              magic_label_id = labelid;
+            }
+          }
+
+          if (magic_label_id == null)
+          {
+            // Throw an error for configuration purposes
+            console.log("There is no label with the vale "+magic_label+". This job is not configured correctly. Please include this label, as well as Start and End attributes.");
+          } else {
+            id_for_anno = magic_label_id;
+          }
+        }
+        else {
+          // There is an annotation being annotated, so use that id for new labels
+          id_for_anno = this.idupforanno;
         }
 
-        if (length == 1)
-        {
-            this.finalize(firsti, start);
-            this.statefolddown();
-        }
-        else
-        {
-              this.finalize(firsti, start);
-              this.statefolddown();
-            // // removed below to not trigger the classifier when there are multiple labels.
-            // // This should be changed to select only labels that are some known value.
-            // // If this known value doesn't exist throw an error (also possibly check the attributes?)
-            // // currently this will grab the *last* label, this should be flipped.
-            // var html = "<p>What type of action did you just annotate?</p>";
-            // for (var i in job.labels)
-            // {
-            //     var id = "classification" + this.id + "_" + i;
-            //     html += "<div class='label'><input type='radio' name='classification" + this.id + "' id='" + id + "'> <label for='" + id + "'>" + job.labels[i] + "</label></div>";
-            // }
-            //
-            // this.classifyinst = $("<div>" + html + "</div>").appendTo(this.handle);
-            // this.classifyinst.hide().slideDown();
-            //
-            // $("input[name='classification" + this.id + "']").click(function() {
-            //     me.classifyinst.slideUp(null, function() {
-            //         me.classifyinst.remove();
-            //     });
-            //
-            //     for (var i in me.job.labels)
-            //     {
-            //         var id = "classification" + me.id + "_" + i;
-            //         if ($("#" + id + ":checked").size() > 0)
-            //         {
-            //             me.finalize(i);
-            //             me.statefolddown();
-            //             break;
-            //         }
-            //     }
-            //
-            // });
-        }
+        this.finalize(id_for_anno, start);
+        this.statefolddown();
+
     }
 
     this.finalize = function(labelid, start, currentframe)
