@@ -29,16 +29,16 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
         {
             return;
         }
-	if ( start == 1 && player.frame >= this.endframe )
-	{
-	    alert('Start frame must be before the end frame');
-	    return;
-	}
-	else if ( start == 2 && player.frame <= this.startframe )
-	{
-	    alert('End frame must be after the start frame');
-	    return;
-	}
+      	if ( start == 1 && player.frame >= this.endframe )
+      	{
+      	    alert('Start frame must be before the end frame');
+      	    return;
+      	}
+      	else if ( start == 2 && player.frame <= this.startframe )
+      	{
+      	    alert('End frame must be after the start frame');
+      	    return;
+      	}
 
         tracks.drawingnew(true);
         console.log("Starting new track object");
@@ -73,58 +73,57 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
 
     this.stopdrawing = function(position, start)
     {
-        if (start == 1 && this.startenabled == false || (start == 2 && this.endenabled == false) )
-        {
-            return;
-	}
-	if ( start == 1 && player.frame >= this.endframe )
-	{
-	    return;
-	}
-	else if ( start == 2 && player.frame <= this.startframe )
-	{
-	    return;
-	}
+      if (start == 1 && this.startenabled == false || (start == 2 && this.endenabled == false) )
+      {
+          return;
+    	}
+    	if ( start == 1 && player.frame >= this.endframe )
+    	{
+    	    return;
+    	}
+    	else if ( start == 2 && player.frame <= this.startframe )
+    	{
+    	    return;
+    	}
 
+      console.log("Received new track object drawing");
 
-	console.log("Received new track object drawing");
+      if ( start == 1 )
+      {
+        kind = "start"
+      }
+      else if ( start == 2 )
+      {
+        kind = "end"
+      }
 
-        if ( start == 1 )
-        {
-          kind = "start"
-        }
-        else if ( start == 2 )
-        {
-          kind = "end"
-        }
+      var track = tracks.add(player.frame, position, this.currentcolor[0], kind);
 
-        var track = tracks.add(player.frame, position, this.currentcolor[0], kind);
+  //        this.drawer.disable();
+  //        ui_disable();
 
-//        this.drawer.disable();
-//        ui_disable();
+      this.currentobject.onready.push(function() {
+         // me.stopnewobject();
+      });
 
-        this.currentobject.onready.push(function() {
-           // me.stopnewobject();
-        });
-
-        this.currentobject.initialize(this.counter, track, this.tracks);
-        this.stopnewobject();
-        this.currentobject.stateclassify(start);
-	if ( start == 1 )
-	{
-      // disables start button once clicked
-      // simply disabling gives errors after the first word is annotated
-	    this.button.button("option", "disabled", true);
-	    this.startframe = player.frame;
-	    this.startenabled = false;
-	}
-	else if ( start == 2 )
-	{
-      // disables end button once clicked
-	    this.endbutton.button("option", "disabled", true);
-	    this.endframe = player.frame;
-	    this.endenabled = false;
-	}
+      this.currentobject.initialize(this.counter, track, this.tracks);
+      this.stopnewobject();
+      this.currentobject.stateclassify(start);
+    	if ( start == 1 )
+    	{
+          // disables start button once clicked
+          // simply disabling gives errors after the first word is annotated
+    	    this.button.button("option", "disabled", true);
+    	    this.startframe = player.frame;
+    	    this.startenabled = false;
+    	}
+    	else if ( start == 2 )
+    	{
+          // disables end button once clicked
+    	    this.endbutton.button("option", "disabled", true);
+    	    this.endframe = player.frame;
+    	    this.endenabled = false;
+    	}
     }
 
     this.stopnewobject = function()
@@ -463,9 +462,7 @@ function TrackObject(job, player, container, color, objectui, kind)
         new_attr_values.push(newattributes[attrid].toString());
       }
 
-      // update the attributes journal
-      // currently this resets all attributes
-      // this should probably instead copy and paste each kind, so that the frames stay in each.
+      // copy the old attributes journal to new keys
       for(var i=0; i<old_label_objects.length; i++) {
         // delete all attribute journals that aren't the new attributes
         for (attributejournalid in old_label_objects[i].track.attributejournals){
@@ -492,8 +489,6 @@ function TrackObject(job, player, container, color, objectui, kind)
         {
           old_label_objects[i].attrid = null;
         }
-        // old_label_objects[i].track.initattributes(this.job.attributes[old_label_objects[i].label]);
-        // old_label_objects[i].track.setattribute(old_label_objects[i].attrid, true);
       }
 
       console.log("stop callback");
@@ -527,6 +522,8 @@ function TrackObject(job, player, container, color, objectui, kind)
 
         var length = 0;
         var firsti = 0;
+        // do not loop over all labels, but rather start as empty string.
+        // unless there's already an annotation up for annotation, then use that label.
         for (var i in this.job.labels)
         {
             length++;
