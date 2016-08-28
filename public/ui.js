@@ -704,7 +704,7 @@ function ui_showinstructions(job)
     $('<div id="turkic_overlay"></div>').appendTo("#container");
     var h = $('<div id="instructionsdialog"></div>').appendTo("#container");
 
-    $('<div class="button" id="instructionsclosetop">Dismiss Instructions</div>').appendTo(h).button({
+    $('<div class="button" id="instructionsclosetop" style="position: fixed; right: 140;">Dismiss Instructions</div>').appendTo(h).button({
         icons: {
             primary: "ui-icon-circle-close"
         }
