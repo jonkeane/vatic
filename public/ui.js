@@ -99,7 +99,7 @@ function ui_setup(job)
 
     $("#advancedoptions").append(
     "<input type='checkbox' id='annotateoptionsresize'>" +
-    "<label for='annotateoptionsresize'>Disable Resize?</label> " +
+    // "<label for='annotateoptionsresize'>Disable Resize?</label> " +
     "<input type='checkbox' id='annotateoptionshideboxes'>" +
     "<label for='annotateoptionshideboxes'>Hide Boxes?</label> " +
     "<input type='checkbox' id='annotateoptionshideboxtext'>" +
