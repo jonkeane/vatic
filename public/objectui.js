@@ -469,8 +469,15 @@ function TrackObject(job, player, container, color, objectui, kind)
       for(var i=0; i<old_label_objects.length; i++) {
         // delete all attribute journals that aren't the new attributes
         for (attributejournalid in old_label_objects[i].track.attributejournals){
-          if (new_attr_values.indexOf(attributejournalid) == -1){
+          if (new_attr_values.indexOf(attributejournalid) != -1){
+            console.log("Error: one of these attributes existed already.");
+          }
+          else
+          {
+            new_attr_id = newattributes[this.job.attributes[oldlabelid][attributejournalid]];
+            old_label_objects[i].track.attributejournals[new_attr_id] = old_label_objects[i].track.attributejournals[attributejournalid];
             delete old_label_objects[i].track.attributejournals[attributejournalid];
+            console.log("Transfered attributes from old to new.");
           }
         }
 
@@ -482,9 +489,11 @@ function TrackObject(job, player, container, color, objectui, kind)
           old_label_objects[i].attrid = newattributes["End"].toString();
         }
         else
-        old_label_objects[i].attrid = null;
-        old_label_objects[i].track.initattributes(this.job.attributes[old_label_objects[i].label]);
-        old_label_objects[i].track.setattribute(old_label_objects[i].attrid, true);
+        {
+          old_label_objects[i].attrid = null;
+        }
+        // old_label_objects[i].track.initattributes(this.job.attributes[old_label_objects[i].label]);
+        // old_label_objects[i].track.setattribute(old_label_objects[i].attrid, true);
       }
 
       console.log("stop callback");
