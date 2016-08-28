@@ -434,7 +434,7 @@ function TrackObject(job, player, container, color, objectui, kind)
     this.update_ui = function(job, response) {
       // update the trackobject job and the objectui job.
       this.job = job_import(job);
-      this.objectui.job = this.job;
+      // this.objectui.job = this.job;
 
       newlabelid = response['labelid'].toString();
       oldlabelid = response['oldlabelid'];
@@ -457,15 +457,36 @@ function TrackObject(job, player, container, color, objectui, kind)
         $( strongtag ).text(this.job.labels[this.label]);
       }
 
+      // create list of new attribute values
+      var new_attr_values = [];
+      for (attrid in newattributes) {
+        new_attr_values.push(newattributes[attrid].toString());
+      }
+
       // update the attributes journal
+      // currently this resets all attributes
+      // this should probably instead copy and paste each kind, so that the frames stay in each.
       for(var i=0; i<old_label_objects.length; i++) {
-        if (old_label_objects[i].kind == "start")
-          old_label_objects[i].attrid = newattributes["Start"];
+        // delete all attribute journals that aren't the new attributes
+        for (attributejournalid in old_label_objects[i].track.attributejournals){
+          if (new_attr_values.indexOf(attributejournalid) == -1){
+            delete old_label_objects[i].track.attributejournals[attributejournalid];
+          }
+        }
+
+        if (old_label_objects[i].kind == "start") {
+          old_label_objects[i].attrid = newattributes["Start"].toString();
+        }
         else if (old_label_objects[i].kind == "end")
-          old_label_objects[i].attrid = newattributes["End"];
+        {
+          old_label_objects[i].attrid = newattributes["End"].toString();
+        }
         else
         old_label_objects[i].attrid = null;
+        old_label_objects[i].track.initattributes(this.job.attributes[old_label_objects[i].label]);
+        old_label_objects[i].track.setattribute(old_label_objects[i].attrid, true);
       }
+
       console.log("stop callback");
     }
 
