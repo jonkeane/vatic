@@ -12,7 +12,8 @@ function ui_build(job)
     ui_setupslider(player);
     ui_setupsubmit(job, tracks, objectui);
     ui_setupclickskip(job, player, tracks, objectui);
-    //ui_setupkeyboardshortcuts(job, player);
+    // ui_setupkeyboardshortcuts(job, player);
+    ui_setupkeyboardshortcuts_inputsafe(job, player);
     ui_loadprevious(job, objectui);
 
     $("#startbutton").click(function() {
@@ -286,37 +287,38 @@ function ui_setupkeyboardshortcuts(job, player)
         eventlog("keyboard", "Key press: " + keycode);
 
         if (keycode == 32 || keycode == 112 || keycode == 116 || keycode == 98)
+        // space, p, t, b
         {
             $("#playbutton").click();
         }
-        if (keycode == 114)
+        if (keycode == 114) // r
         {
             $("#rewindbutton").click();
         }
-        else if (keycode == 110)
+        else if (keycode == 110) // n
         {
             $("#startbutton").click();
         }
-        else if (keycode == 104)
+        else if (keycode == 104) // h
         {
             $("#annotateoptionshideboxes").click();
         }
         else
         {
             var skip = 0;
-            if (keycode == 44 || keycode == 100)
+            if (keycode == 44 || keycode == 100) // , and d
             {
                 skip = job.skip > 0 ? -job.skip : -10;
             }
-            else if (keycode == 46 || keycode == 102)
+            else if (keycode == 46 || keycode == 102) // . and f
             {
                 skip = job.skip > 0 ? job.skip : 10;
             }
-            else if (keycode == 62 || keycode == 118)
+            else if (keycode == 62 || keycode == 118) // > and v
             {
                 skip = job.skip > 0 ? job.skip : 1;
             }
-            else if (keycode == 60 || keycode == 99)
+            else if (keycode == 60 || keycode == 99) // < and c
             {
                 skip = job.skip > 0 ? -job.skip : -1;
             }
@@ -332,6 +334,61 @@ function ui_setupkeyboardshortcuts(job, player)
     });
 
 }
+
+
+
+function ui_setupkeyboardshortcuts_inputsafe(job, player)
+{
+    $(window).keypress(function(e) {
+        console.log("Key press: " + e.keyCode);
+
+        if (ui_disabled)
+        {
+            console.log("Key press ignored because UI is disabled.");
+            return;
+        }
+
+        var keycode = e.keyCode ? e.keyCode : e.which;
+        eventlog("keyboard", "Key press: " + keycode);
+
+        // even space coudl be entered in the text box.
+        // if (keycode == 32)
+        // // space, (old: + p, t, b)
+        // {
+        //     $("#playbutton").click();
+        // }
+        var skip = 0;
+        if (keycode == 44) // , old: + d
+        {
+            skip = job.skip > 0 ? -job.skip : -10;
+        }
+        else if (keycode == 46) // . old: + f
+        {
+            skip = job.skip > 0 ? job.skip : 10;
+        }
+        else if (keycode == 62) // > old: + v
+        {
+            skip = job.skip > 0 ? job.skip : 1;
+        }
+        else if (keycode == 60) // < old: + c
+        {
+            skip = job.skip > 0 ? -job.skip : -1;
+        }
+
+        if (skip != 0)
+        {
+            player.pause();
+            player.displace(skip);
+
+            ui_snaptokeyframe(job, player);
+        }
+    });
+
+}
+
+
+
+
 
 function ui_canresize()
 {

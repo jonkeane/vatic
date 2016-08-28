@@ -644,21 +644,50 @@ function TrackObject(job, player, container, color, objectui, kind)
 
         $(".change" + this.id + "word").click(function() {
 
-            console.log(me.job.labels[me.label])
-            console.log(me.job.attributes[me.track.label][me.attrid])
+          var word_id = this.id;
 
-            headerobj = $( me.handle[0] ).find(".trackobjectheader")[0];
-            strongfield = $( headerobj ).find("strong")[0];
-            $( strongfield ).replaceWith('<input type="text" id="newWord", value="'+me.job.labels[me.label]+'">');
+          headerobj = $( me.handle[0] ).find(".trackobjectheader")[0];
+          strongfield = $( headerobj ).find("strong")[0];
+          $( strongfield ).replaceWith('<input type="text" id="newWord", value="'+me.job.labels[me.label]+'">');
+          textinput = $( headerobj ).find("input")[0];
 
-            // force focus into the text field
+          // If the enter key is pressed, submit the new word
+          $(textinput).bind("enterKey",function(e){
+            //search two parents up for a checkmark to click (this is pretty fragile!)
+            check = $( this.parentElement.parentElement ).find(".ui-icon-check")[0];
+             $(check).click();
+          });
 
-            // hide the wrench show the cancel button
-            me.wrench.hide();
-            me.close.show();
+          // If the escape key is pressed, submit the new word
+          $(textinput).bind("escKey",function(e){
+            //search two parents up for a checkmark to click (this is pretty fragile!)
+            check = $( this.parentElement.parentElement ).find(".ui-icon-close")[0];
+             $(check).click();
+          });
 
-            // show check for submit
-            me.check.show();
+          // catch the keys
+          $(textinput).keyup(function(e){
+              if(e.keyCode == 13)
+              {
+                  $(this).trigger("enterKey");
+              }
+              else if (e.keyCode == 27)
+              {
+                $(this).trigger("escKey");
+              }
+          });
+
+
+          // force focus into the text field and select the contents
+          $( textinput ).focus();
+          $( textinput ).select();
+
+          // hide the wrench show the cancel button
+          me.wrench.hide();
+          me.close.show();
+
+          // show check for submit
+          me.check.show();
         });
 
         $(".submit" + this.id + "word").click(function() {
