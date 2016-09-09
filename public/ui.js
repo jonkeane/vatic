@@ -351,7 +351,7 @@ function ui_setupkeyboardshortcuts_inputsafe(job, player)
         var keycode = e.keyCode ? e.keyCode : e.which;
         eventlog("keyboard", "Key press: " + keycode);
 
-        // even space coudl be entered in the text box.
+        // even space could be entered in the text box.
         // if (keycode == 32)
         // // space, (old: + p, t, b)
         // {
@@ -529,22 +529,38 @@ function ui_submit(job, tracks, objectui)
     console.dir(tracks);
     console.log("Start submit - status: " + tracks.serialize());
 
-    // Check that all annotations are something other than the default, magic: ""
-    // this excludes tracks that are marked as deleted because they won't be sent
-    var magic_label = "";
-    for (trackid in tracks.tracks)
-    {
-      console.log(tracks.tracks[trackid].label);
-      if (tracks.tracks[trackid].deleted == false && objectui.job.labels[tracks.tracks[trackid].label] == magic_label){
-        alert("At least one label is blank. Please click the wrench in the box on the right, and type in the word that was fingerspelled");
-        return;
-      }
-    }
-
     if (!mturk_submitallowed())
     {
         alert("Please accept the task before you submit.");
         return;
+    }
+
+    // get a set of tracks that are not deleted in order to checks
+    tracks_non_deleted = tracks.tracks.filter(function(trck){
+      return trck.deleted == false;
+    });
+
+    // get a list of labels from the nondeleted tracks
+    var labels_non_deleted = [];
+    for (var i=0; i < tracks_non_deleted.length ; ++i)
+      labels_non_deleted.push(tracks_non_deleted[i]['label']);
+    // make the labels unique
+    var labels_to_check = $.grep(labels_non_deleted, function(v, k){
+      return $.inArray(v ,labels_non_deleted) === k;
+    });
+
+
+    // Go through the annotations and make sure that they are well-formed
+    var magic_label = ""; // magic label to ensure the annotations are not default
+    for (trackid in tracks_non_deleted)
+    {
+      console.log(tracks_non_deleted[trackid].label);
+      // Check that all annotations are something other than the default, magic: ""
+      if (objectui.job.labels[tracks_non_deleted[trackid].label] == magic_label){
+        alert("At least one label is blank. Please click the wrench in the box on the right, and type in the word that was fingerspelled");
+        return;
+      }
+
     }
 
     // Currently this checks that the start and stop buttons are disabled to accept.
@@ -552,13 +568,13 @@ function ui_submit(job, tracks, objectui)
     // and confirm that each annotation has a start and end.
     if ( objectui.startenabled != false || objectui.endenabled != false )
     {
-	alert("Please mark both 'Start' and 'End' of the action in the video");
-	return;
+	    alert("Please mark both 'Start' and 'End' of the action in the video");
+	    return;
     }
     if ( objectui.endframe - objectui.startframe < 10 )
     {
-	alert("Please select 'Start' and 'End' with a minimum separation of 10 frames");
-	return;
+      alert("Please select 'Start' and 'End' with a minimum separation of 10 frames");
+	    return;
     }
 
     /*if (mturk_isassigned() && !mturk_isoffline())
