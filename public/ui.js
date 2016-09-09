@@ -549,6 +549,7 @@ function ui_submit(job, tracks, objectui)
       return $.inArray(v ,labels_non_deleted) === k;
     });
 
+    //next steps: check that each label has two tracks, one start, one end. Make sure they have the same labels
 
     // Go through the annotations and make sure that they are well-formed
     var magic_label = ""; // magic label to ensure the annotations are not default
