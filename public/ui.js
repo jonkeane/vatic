@@ -549,7 +549,41 @@ function ui_submit(job, tracks, objectui)
       return $.inArray(v ,labels_non_deleted) === k;
     });
 
-    //next steps: check that each label has two tracks, one start, one end. Make sure they have the same labels
+    // Check the form of the labels present by grouping them by label, and then checking each group
+    for (lbl in labels_to_check)
+      console.log("Checking label: "+labels_to_check[lbl]);
+      var matched_tracks = $.grep(tracks_non_deleted, function(e) { return e.label == labels_to_check[lbl] });
+
+      // check that there is one start and one end
+      // this depends on the kind attribute, which is only setup when an annotation is made
+      // not when the annotations are read in form the database
+      var start_anno = $.grep(matched_tracks, function(e) { return e.kind == "start" });
+      var end_anno = $.grep(matched_tracks, function(e) { return e.kind == "end" });
+      if (start_anno.length < 1) {
+        alert("There is no Start annotation for the word '"+job.labels[labels_to_check[lbl]]+"' Please add one.");
+        return;
+      } else if (start_anno.length > 1) {
+        alert("There is more than one Start annotation for the word '"+job.labels[labels_to_check[lbl]]+"' Please delete one.");
+        return;
+      }
+      if (end_anno.length < 1) {
+        alert("There is no End annotation for the word '"+job.labels[labels_to_check[lbl]]+"' Please add one.");
+        return;
+      } else if (end_anno.length > 1) {
+        alert("There is more than one End annotation for the word '"+job.labels[labels_to_check[lbl]]+"' Please delete one.");
+        return;
+      }
+      console.log("stop here");
+
+      // check if there are exactly two annotations
+      // this hsould always be true given the checks above, but is good to check none the less.
+      if (matched_tracks.length > 2){
+        alert("There are more annotations than expected for the word '"+job.labels[labels_to_check[lbl]]+"' Please delete the extra annotations.");
+        return;
+      } else if (matched_tracks.length < 2){
+        alert("The Start or End annotation is missing for the word '"+job.labels[labels_to_check[lbl]]+"' Please add the extra annotation.");
+        return;
+      }
 
     // Go through the annotations and make sure that they are well-formed
     var magic_label = ""; // magic label to ensure the annotations are not default
@@ -564,14 +598,13 @@ function ui_submit(job, tracks, objectui)
 
     }
 
-    // Currently this checks that the start and stop buttons are disabled to accept.
-    // This should be changed to look through the (not deleted) tracks like is done above
-    // and confirm that each annotation has a start and end.
-    if ( objectui.startenabled != false || objectui.endenabled != false )
-    {
-	    alert("Please mark both 'Start' and 'End' of the action in the video");
-	    return;
-    }
+    // This checks that the start and stop buttons are disabled to accept.
+    // This has been disabled to allow for multiple annotations per video.
+    // if ( objectui.startenabled != false || objectui.endenabled != false )
+    // {
+	  //   alert("Please mark both 'Start' and 'End' of the action in the video");
+	  //   return;
+    // }
     if ( objectui.endframe - objectui.startframe < 10 )
     {
       alert("Please select 'Start' and 'End' with a minimum separation of 10 frames");

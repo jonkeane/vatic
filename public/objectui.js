@@ -108,19 +108,41 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
       this.currentobject.stateclassify(start);
     	if ( start == 1 )
     	{
-          // disables start button once clicked
-          // simply disabling gives errors after the first word is annotated
-    	    this.button.button("option", "disabled", true);
-    	    this.startframe = player.frame;
-    	    this.startenabled = false;
+        if ( this.endbutton[0].getAttribute("aria-disabled") == "false") {
+          // disable start button once clicked if the end button is active
+          this.button.button("option", "disabled", true);
+          this.startframe = player.frame;
+          this.startenabled = false;
+        } else if (this.endbutton[0].getAttribute("aria-disabled") == "true") {
+          // reenable both buttons, if the end button is already disabled.
+          this.button.button("option", "disabled", false);
+          this.endbutton.button("option", "disabled", false);
+          this.startenabled = true;
+          this.endenabled = true;
+          // turn off start/end frame for the next annotatoins
+          this.startframe = job.start;
+          this.endframe = job.stop;
+        }
     	}
     	else if ( start == 2 )
     	{
-          // disables end button once clicked
-    	    this.endbutton.button("option", "disabled", true);
-    	    this.endframe = player.frame;
-    	    this.endenabled = false;
+        if ( this.button[0].getAttribute("aria-disabled") == "false") {
+          // disable end button once clicked if the start button is active
+          this.endbutton.button("option", "disabled", true);
+          this.endframe = player.frame;
+          this.endenabled = false;
+        } else if (this.button[0].getAttribute("aria-disabled") == "true") {
+          // reenable both buttons, if the start button is already disabled.
+          this.button.button("option", "disabled", false);
+          this.endbutton.button("option", "disabled", false);
+          this.startenabled = true;
+          this.endenabled = true;
+          // turn off start/end frame for the next annotatoins
+          this.startframe = job.start;
+          this.endframe = job.stop;
+        }
     	}
+    // change the label up for annotation?
     }
 
     this.stopnewobject = function()
@@ -429,8 +451,14 @@ function TrackObject(job, player, container, color, objectui, kind)
       oldlabelid = response['oldlabelid'];
       newattributes = response['newattributes'];
 
-      // change the id up for anno in the objectUI
-      this.job.idupforanno = newlabelid;
+      // null out the id up for anno if both start and end buttons are endenabled
+      // a bit of a hack, but it works.
+      if (this.objectui.button[0].getAttribute("aria-disabled") == "false" && this.objectui.endbutton[0].getAttribute("aria-disabled") == "false") {
+        this.job.idupforanno = null;
+      } else {
+        // change the id up for anno in the objectUI
+        this.job.idupforanno = newlabelid;
+      }
 
       // find tracks with the old label
       var old_label_objects = track_has_label(this.objectui.objects, oldlabelid)
