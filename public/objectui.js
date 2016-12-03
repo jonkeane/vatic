@@ -47,6 +47,7 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
 
         this.instructions.fadeOut();
 
+        // add color checking to see if color up is extant and use that instead.
         this.currentcolor = this.pickcolor();
         this.drawer.color = this.currentcolor[0];
 //        this.drawer.enable();
@@ -257,6 +258,7 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
       }).click(function() {
         // start = 1
         me.startnewobject(1);
+      // calculates the positoin of the handles
 	    xtl = (me.player.frame*$("#playerslider").width())/(me.player.job.stop);
 	    me.stopdrawing(new Position(xtl, me.player.handle.height()+2, xtl+1, me.player.handle.height()+12), 1);
   	  });
