@@ -47,11 +47,11 @@ function ui_setup(job)
               "<td rowspan='2'><div id='sidebar'></div></td>" +
           "</tr><tr style='height: 15px;' ></tr>" +
           "<tr>" +
-              "<td><div id='bottombar'></div></td>" +
+              "<td/>" +
               "<td><div id='frameinfobar'></div></td>" +
           "</tr>" +
           "<tr>" +
-              "<td><div id='advancedoptions'></div></td>" +
+          "<td><div id='bottombar' style='float: left;'></div><div id='advancedoptions'></div></td>" +
               "<td><div id='submitbar'></div></td>" +
           "</tr>" +
       "</table>").appendTo(screen).css("width", "100%");
@@ -64,6 +64,9 @@ function ui_setup(job)
                           "height": job.height + "px",
                           "margin": "0 auto"})
                     .parent().css("width", playerwidth + "px");
+    // place slider just below video (to line up with marks)
+    $("#videoframe").append("<div id='playerslider'></div>");
+
 
     $("#sidebar").css({"height": job.height + "px",
                        "width": "205px"});
@@ -74,7 +77,8 @@ function ui_setup(job)
     $("#frameinfobar").append("<div style='float: left;'><strong>Frame: </strong></div><div id='frameinfo'></div>");
     $("#frameinfo").css({"width": "30px", "padding-left": "10px", "float": "left"});
 
-    $("#bottombar").append("<div id='playerslider'></div>");
+    // place slider next to rewind / play buttons
+    // $("#bottombar").append("<div id='playerslider'></div>");
     $("#bottombar").append("<div class='button' id='rewindbutton'>Rewind</div> ");
     $("#bottombar").append("<div class='button' id='playbutton'>Play</div> ");
 
@@ -422,9 +426,10 @@ function ui_setupslider(player)
         "background-image": "none"});
 
     slider.css({
-        marginTop: "6px",
-        width: parseInt(slider.parent().css("width")) - 200 + "px",
-        float: "right"
+        marginTop: parseInt(slider.parent().css("height")) +20 + "px", // for under video position only
+        width: parseInt(slider.parent().css("width")) + "px", // for under video position only
+        float: "bottom",
+        position: "absolute" // for under video position only
     });
 
     player.onupdate.push(function() {
