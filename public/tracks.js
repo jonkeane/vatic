@@ -975,7 +975,7 @@ function Track(player, color, position, kind)
         return new Position(xtl, ytl, xbr, ybr, occluded, outside);
     }
 
-    this.draw(this.player.frame);
+    this.draw(this.player.frame); // this  *actually* draws the box.
     this.setlock(true);
 }
 
