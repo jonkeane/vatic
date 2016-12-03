@@ -550,7 +550,7 @@ function ui_submit(job, tracks, objectui)
     });
 
     // Check the form of the labels present by grouping them by label, and then checking each group
-    for (lbl in labels_to_check)
+    for (lbl in labels_to_check) {
       console.log("Checking label: "+labels_to_check[lbl]);
       var matched_tracks = $.grep(tracks_non_deleted, function(e) { return e.label == labels_to_check[lbl] });
 
@@ -560,17 +560,17 @@ function ui_submit(job, tracks, objectui)
       var start_anno = $.grep(matched_tracks, function(e) { return e.kind == "start" });
       var end_anno = $.grep(matched_tracks, function(e) { return e.kind == "end" });
       if (start_anno.length < 1) {
-        alert("There is no Start annotation for the word '"+job.labels[labels_to_check[lbl]]+"' Please add one.");
+        alert("There is no Start annotation for the word '"+objectui.job.labels[labels_to_check[lbl]]+"' Please add one.");
         return;
       } else if (start_anno.length > 1) {
-        alert("There is more than one Start annotation for the word '"+job.labels[labels_to_check[lbl]]+"' Please delete one.");
+        alert("There is more than one Start annotation for the word '"+objectui.job.labels[labels_to_check[lbl]]+"' Please delete one.");
         return;
       }
       if (end_anno.length < 1) {
-        alert("There is no End annotation for the word '"+job.labels[labels_to_check[lbl]]+"' Please add one.");
+        alert("There is no End annotation for the word '"+objectui.job.labels[labels_to_check[lbl]]+"' Please add one.");
         return;
       } else if (end_anno.length > 1) {
-        alert("There is more than one End annotation for the word '"+job.labels[labels_to_check[lbl]]+"' Please delete one.");
+        alert("There is more than one End annotation for the word '"+objectui.job.labels[labels_to_check[lbl]]+"' Please delete one.");
         return;
       }
       console.log("stop here");
@@ -578,12 +578,13 @@ function ui_submit(job, tracks, objectui)
       // check if there are exactly two annotations
       // this hsould always be true given the checks above, but is good to check none the less.
       if (matched_tracks.length > 2){
-        alert("There are more annotations than expected for the word '"+job.labels[labels_to_check[lbl]]+"' Please delete the extra annotations.");
+        alert("There are more annotations than expected for the word '"+objectui.job.labels[labels_to_check[lbl]]+"' Please delete the extra annotations.");
         return;
       } else if (matched_tracks.length < 2){
-        alert("The Start or End annotation is missing for the word '"+job.labels[labels_to_check[lbl]]+"' Please add the extra annotation.");
+        alert("The Start or End annotation is missing for the word '"+objectui.job.labels[labels_to_check[lbl]]+"' Please add the extra annotation.");
         return;
       }
+    }
 
     // Go through the annotations and make sure that they are well-formed
     var magic_label = ""; // magic label to ensure the annotations are not default
