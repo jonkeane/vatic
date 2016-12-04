@@ -13,7 +13,7 @@ function Job(data)
     this.blowradius = null;
     this.thisid = null;
     this.labels = null;
-    this.idupforanno = null;
+    // this.idupforanno = null;
 
     this.frameurl = function(i)
     {

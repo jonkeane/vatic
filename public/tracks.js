@@ -1173,11 +1173,11 @@ function Position(xtl, ytl, xbr, ybr, occluded, outside)
 /*
  * A structure to store the current_annotation
  */
-function current_annotation(id, has_start, has_end, label, color)
+function current_annotation(id)
 {
     this.id = id;
-    this.has_start = has_start;
-    this.has_end = has_end;
-    this.label = label;
-    this.color = color;
+    this.has_start = null;
+    this.has_end = null;
+    this.label = null;
+    this.color = null;
 }

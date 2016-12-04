@@ -23,6 +23,38 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
 
     this.objects = [];
 
+    this.update_button_ui = function()
+    {
+      // check currentobject, and adjust button status accordingly
+      // start
+      if(this.tracks.current_annotation.has_start == true){
+        this.button.button("option", "disabled", true);
+        this.startenabled = false;
+      } else {
+        this.button.button("option", "disabled", false);
+        this.startenabled = true;
+      }
+
+      // end
+      if(this.tracks.current_annotation.has_end == true){
+        this.endbutton.button("option", "disabled", true);
+        this.endenabled = false;
+      } else {
+        this.endbutton.button("option", "disabled", false);
+        this.endenabled = true;
+      }
+
+      // if both ends exist, reset start and stop frames
+      if(this.tracks.current_annotation.has_start == true && this.tracks.current_annotation.has_end == true){
+        this.startframe = job.start;
+        this.endframe = job.stop;
+        this.button.button("option", "disabled", false);
+        this.startenabled = true;
+        this.endbutton.button("option", "disabled", false);
+        this.endenabled = true;
+      }
+    }
+
     this.startnewobject = function(start)
     {
         if (start == 1 && this.startenabled == false || (start == 2 && this.endenabled == false) )
@@ -46,6 +78,11 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
         eventlog("newobject", "Start drawing new object");
 
         this.instructions.fadeOut();
+
+        // If the current_annotation has both a start and a stop, start a new annotation
+        if (this.tracks.current_annotation != null && this.tracks.current_annotation.has_start == true &&  this.tracks.current_annotation.has_end == true) {
+          this.tracks.current_annotation = null;
+        }
 
         if(this.tracks.current_annotation == null) {
           // If there is no current_annotaiton, pick a new color
@@ -113,43 +150,18 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
       this.currentobject.initialize(this.counter, track, this.tracks);
       this.stopnewobject();
       this.currentobject.stateclassify(start);
-    	if ( start == 1 )
+
+      if ( start == 1 )
     	{
-        if ( this.endbutton[0].getAttribute("aria-disabled") == "false") {
-          // disable start button once clicked if the end button is active
-          this.button.button("option", "disabled", true);
-          this.startframe = player.frame;
-          this.startenabled = false;
-        } else if (this.endbutton[0].getAttribute("aria-disabled") == "true") {
-          // reenable both buttons, if the end button is already disabled.
-          this.button.button("option", "disabled", false);
-          this.endbutton.button("option", "disabled", false);
-          this.startenabled = true;
-          this.endenabled = true;
-          // turn off start/end frame for the next annotatoins
-          this.startframe = job.start;
-          this.endframe = job.stop;
-        }
+        this.startframe = player.frame;
     	}
     	else if ( start == 2 )
     	{
-        if ( this.button[0].getAttribute("aria-disabled") == "false") {
-          // disable end button once clicked if the start button is active
-          this.endbutton.button("option", "disabled", true);
-          this.endframe = player.frame;
-          this.endenabled = false;
-        } else if (this.button[0].getAttribute("aria-disabled") == "true") {
-          // reenable both buttons, if the start button is already disabled.
-          this.button.button("option", "disabled", false);
-          this.endbutton.button("option", "disabled", false);
-          this.startenabled = true;
-          this.endenabled = true;
-          // turn off start/end frame for the next annotatoins
-          this.startframe = job.start;
-          this.endframe = job.stop;
-        }
+        this.endframe = player.frame;
     	}
-    // change the label up for annotation?
+
+      this.update_button_ui();
+
     }
 
     this.stopnewobject = function()
@@ -420,6 +432,26 @@ function TrackObject(job, player, container, color, objectui, kind)
 
     this.remove = function()
     {
+      // add information back to current_annotation
+      // need to change bounds so that start/end cannot be reverse in order.
+      if(this.tracks.current_annotation != null && this.tracks.current_annotation.label != this.label) {
+        // check if there is no current_annotation already
+        this.tracks.current_annotation = new current_annotation(id = this.track.label);
+        this.tracks.current_annotation.color = this.color;
+        this.tracks.current_annotation.has_start = true;
+        this.tracks.current_annotation.has_end = true;
+      }
+      if(this.kind == "start"){
+        this.tracks.current_annotation.has_start = null;
+        this.objectui.startframe = me.job.start;
+      }
+      if(this.kind == "end"){
+        this.tracks.current_annotation.has_end = null;
+        this.objectui.endframe = me.job.stop;
+      }
+
+      this.objectui.update_button_ui(this);
+
         this.handle.slideUp(null, function() {
             me.handle.remove();
         });
@@ -463,7 +495,7 @@ function TrackObject(job, player, container, color, objectui, kind)
       // null out the id up for anno if both start and end buttons are endenabled
       // a bit of a hack, but it works.
       if (this.objectui.button[0].getAttribute("aria-disabled") == "false" && this.objectui.endbutton[0].getAttribute("aria-disabled") == "false") {
-        this.tracks.current_annotation = null;
+        // this.tracks.current_annotation = null;
       } else {
         // change the id up for anno in the objectUI
         this.tracks.current_annotation.id = newlabelid;
@@ -577,15 +609,22 @@ function TrackObject(job, player, container, color, objectui, kind)
           } else {
             id_for_anno = magic_label_id;
           }
+          // set current_annotation object
+          this.tracks.current_annotation = new current_annotation(id = id_for_anno);
+          this.tracks.current_annotation.color = this.color;
         }
         else {
           // There is an annotation being annotated, so use that id for new labels
           id_for_anno = this.tracks.current_annotation.id;
         }
 
-        // set id up for anno
-        this.tracks.current_annotation = new current_annotation(id = id_for_anno, has_start=null, has_end = null, label = null, color = this.color);
-        // this.tracks.current_annotation = id_for_anno;
+        // update teh current_annotation markers
+        if(kind == "start"){
+          this.tracks.current_annotation.has_start = true;
+        }
+        if(kind == "end"){
+          this.tracks.current_annotation.has_end = true;
+        }
 
         this.finalize(id_for_anno, start);
         this.statefolddown();
@@ -637,21 +676,21 @@ function TrackObject(job, player, container, color, objectui, kind)
             {
                 me.remove();
                 eventlog("removeobject", "Deleted an annotation");
-                if ( me.job.attributes[me.track.label][me.attrid] == "End" )
-                // if ( me.track.kind == "end" )
-            		{
-            		    $("#endbutton").button("option", "disabled", false);
-            		    me.objectui.endframe = me.job.stop;
-            		    me.objectui.endenabled = true;
-
-            		}
-                else if ( me.job.attributes[me.track.label][me.attrid] == "Start" )
-                // else if ( me.track.kind == "start" )
-            		{
-            		    $("#startbutton").button("option", "disabled", false);
-            		    me.objectui.startframe = me.job.start;
-            		    me.objectui.startenabled = true;
-            		}
+                // if ( me.job.attributes[me.track.label][me.attrid] == "End" )
+                // // if ( me.track.kind == "end" )
+            		// {
+            		//     $("#endbutton").button("option", "disabled", false);
+            		//     me.objectui.endframe = me.job.stop;
+            		//     me.objectui.endenabled = true;
+                //
+            		// }
+                // else if ( me.job.attributes[me.track.label][me.attrid] == "Start" )
+                // // else if ( me.track.kind == "start" )
+            		// {
+            		//     $("#startbutton").button("option", "disabled", false);
+            		//     me.objectui.startframe = me.job.start;
+            		//     me.objectui.startenabled = true;
+            		// }
 
             }
         });
