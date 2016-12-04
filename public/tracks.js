@@ -263,6 +263,8 @@ function TrackCollection(player, job)
 
     this.onnewobject = [];
 
+    this.current_annotation = null;
+
     player.onupdate.push(function() {
         me.update(player.frame);
     });
@@ -1163,4 +1165,19 @@ function Position(xtl, ytl, xbr, ybr, occluded, outside)
                             this.occluded,
                             this.outside)
     }
+}
+
+
+
+
+/*
+ * A structure to store the current_annotation
+ */
+function current_annotation(id, has_start, has_end, label, color)
+{
+    this.id = id;
+    this.has_start = has_start;
+    this.has_end = has_end;
+    this.label = label;
+    this.color = color;
 }

@@ -47,9 +47,15 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
 
         this.instructions.fadeOut();
 
-        // add color checking to see if color up is extant and use that instead.
-        this.currentcolor = this.pickcolor();
-        this.drawer.color = this.currentcolor[0];
+        if(this.tracks.current_annotation == null) {
+          // If there is no current_annotaiton, pick a new color
+          this.currentcolor = this.pickcolor();
+          this.drawer.color = this.currentcolor[0];
+        } else {
+          this.currentcolor = this.tracks.current_annotation.color;
+          this.drawer.color = this.currentcolor[0];
+        }
+
 //        this.drawer.enable();
 
 //        this.button.button("option", "disabled", true);
@@ -193,6 +199,7 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
           kind = null;
         }
 
+        // need to add in current annotation methods?
         this.currentcolor = this.pickcolor();
         var obj = new TrackObject(this.job, this.player,
                                   container, this.currentcolor, this, kind);
@@ -456,10 +463,10 @@ function TrackObject(job, player, container, color, objectui, kind)
       // null out the id up for anno if both start and end buttons are endenabled
       // a bit of a hack, but it works.
       if (this.objectui.button[0].getAttribute("aria-disabled") == "false" && this.objectui.endbutton[0].getAttribute("aria-disabled") == "false") {
-        this.job.idupforanno = null;
+        this.tracks.current_annotation = null;
       } else {
         // change the id up for anno in the objectUI
-        this.job.idupforanno = newlabelid;
+        this.tracks.current_annotation.id = newlabelid;
       }
 
       // find tracks with the old label
@@ -550,7 +557,7 @@ function TrackObject(job, player, container, color, objectui, kind)
         // do not loop over all labels, but rather start as empty string.
         // unless there's already an annotation up for annotation, then use the empty label.
 
-        if ( this.job.idupforanno == null){
+        if ( this.tracks.current_annotation == null){
           // There is no annotation currently being annotated, check if this job
           // has the magic label ""
           var magic_label = "";
@@ -573,11 +580,12 @@ function TrackObject(job, player, container, color, objectui, kind)
         }
         else {
           // There is an annotation being annotated, so use that id for new labels
-          id_for_anno = this.job.idupforanno;
+          id_for_anno = this.tracks.current_annotation.id;
         }
 
         // set id up for anno
-        this.job.idupforanno = id_for_anno;
+        this.tracks.current_annotation = new current_annotation(id = id_for_anno, has_start=null, has_end = null, label = null, color = this.color);
+        // this.tracks.current_annotation = id_for_anno;
 
         this.finalize(id_for_anno, start);
         this.statefolddown();
