@@ -434,7 +434,7 @@ function TrackObject(job, player, container, color, objectui, kind)
     {
       // add information back to current_annotation
       // need to change bounds so that start/end cannot be reverse in order.
-      if(this.tracks.current_annotation != null && this.tracks.current_annotation.label != this.label) {
+      if(this.tracks.current_annotation != null && this.tracks.current_annotation.id != this.label) {
         // check if there is no current_annotation already
         this.tracks.current_annotation = new current_annotation(id = this.track.label);
         this.tracks.current_annotation.color = this.color;
