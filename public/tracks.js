@@ -658,7 +658,7 @@ function Track(player, color, position, kind)
         if (this.handle != null)
         {
             var t = this.handle.children(".boundingboxtext");
-            t.html(value).show();
+            t.html(value).hide();
         }
 
     }

@@ -105,9 +105,7 @@ function ui_setup(job)
     "<input type='checkbox' id='annotateoptionsresize'>" +
     // "<label for='annotateoptionsresize'>Disable Resize?</label> " +
     "<input type='checkbox' id='annotateoptionshideboxes'>" +
-    "<label for='annotateoptionshideboxes'>Hide Boxes?</label> " +
-    "<input type='checkbox' id='annotateoptionshideboxtext'>" +
-    "<label for='annotateoptionshideboxtext'>Hide Labels?</label> ");
+    "<label for='annotateoptionshideboxes'>Hide Boxes?</label> ");
 
     $("#advancedoptions").append(
     "<div id='speedcontrol'>" +

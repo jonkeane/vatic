@@ -23,6 +23,32 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
 
     this.objects = [];
 
+    // for drawing lines (both getOffset() and connect())
+    // from http://stackoverflow.com/questions/8672369/how-to-draw-a-line-between-two-divs
+    this.getOffset = function( el ) {
+    var rect = el.getBoundingClientRect();
+    return {
+        left: rect.left + window.pageXOffset,
+        top: rect.top + window.pageYOffset,
+        width: rect.width || el.offsetWidth,
+        height: rect.height || el.offsetHeight
+    };
+}
+
+    this.connect = function(div1, div2, color, thickness) { // draw a line connecting elements
+        var off1 = this.getOffset(div1);
+        var off2 = this.getOffset(div2);
+        // distance
+        var length = (off2.left - off1.left)-4;
+        // make hr
+        // add in identification information for when this needs to be deleted
+        var htmlLine = "<div style='padding:0px; margin:0px; height:" + thickness + "px; background-color:" + color + "; position:absolute; left:2px; top:2px; width:" + length + "px; z-index:0;' />";
+        //
+        // alert(htmlLine);
+        // document.body.innerHTML += htmlLine;
+        this.tracks.tracks[0].handle.append(htmlLine)
+    }
+
     this.update_button_ui = function()
     {
       // check currentobject, and adjust button status accordingly
@@ -46,6 +72,7 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
 
       // if both ends exist, reset start and stop frames
       if(this.tracks.current_annotation != null && this.tracks.current_annotation.has_start == true && this.tracks.current_annotation.has_end == true){
+        this.connect(this.tracks.tracks[0].handle[0], this.tracks.tracks[1].handle[0], "blue", 4)
         this.startframe = job.start;
         this.endframe = job.stop;
         this.button.button("option", "disabled", false);
