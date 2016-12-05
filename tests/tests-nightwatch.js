@@ -57,7 +57,7 @@ module.exports = {
     // move the slider
     browser
       .useCss()
-      .moveToElement('#playerslider',  0,  0)
+      .moveToElement('#playerslider > a',  2,  2)
       .mouseButtonDown(0)
       .moveToElement('#playerslider',  200,  0) // Move to offset position of 200(x) 0(y)
       .mouseButtonUp(0);
@@ -69,7 +69,7 @@ module.exports = {
     // check that the annotation shows up
     browser.expect.element('#objectcontainer .trackobject').to.be.visible;
     browser.expect.element('#objectcontainer .trackobject p').to.be.visible;
-    browser.expect.element('#objectcontainer > div:nth-child(1) > p:nth-child(5) > strong').text.to.equal('End - Frame:45');
+    browser.expect.element('#objectcontainer > div:nth-child(1) > p:nth-child(5) > strong').text.to.equal('End - Frame:47');
     // check that there is an end button, and it is enable (aria-disabled = false)
     // browser.expect.element('#endbutton').to.be.visible
     //   .to.have.attribute("aria-disabled").equals("false");
@@ -110,7 +110,7 @@ module.exports = {
 
   'delete one end annotation' : function (browser) {
     browser.expect.element('#objectcontainer > div:nth-child(1)').to.be.visible;
-    browser.expect.element('#objectcontainer > div:nth-child(1) > p:nth-child(5) > strong').text.to.equal('End - Frame:45');
+    browser.expect.element('#objectcontainer > div:nth-child(1) > p:nth-child(5) > strong').text.to.equal('End - Frame:47');
     browser.click('#trackobject1delete');
     // the alert has the right text
     browser.getAlertText(function(result){
@@ -118,10 +118,9 @@ module.exports = {
       browser.acceptAlert();
     });
 
-    browser.pause(500);
     browser.expect.element('#objectcontainer > div:nth-child(1)').to.be.visible;
     // make sure the end annotation is deleted, and the start has taken its place
-    browser.expect.element('#objectcontainer > div:nth-child(1) > p:nth-child(5) > strong').text.to.not.equal('End - Frame:45');
+    browser.expect.element('#objectcontainer > div:nth-child(1) > p:nth-child(5) > strong').text.to.not.equal('End - Frame:47').before(1000);
     browser.expect.element('#objectcontainer > div:nth-child(1) > p:nth-child(5) > strong').text.to.equal('Start - Frame:0');
 
     // confirm the start button is disabled, and end button is enabled.
@@ -247,12 +246,12 @@ module.exports = {
 
     // delete the start track
     browser.click('#trackobject3delete');
-
     // the alert has the right text
     browser.getAlertText(function(result){
       this.assert.equal(result.value, 'Delete the newword End annotation?');
       browser.acceptAlert();
     });
+
 
     browser.expect.element('#objectcontainer div p:nth-child(5) strong').text.to.not.equal('End - Frame:92').before(1000);
     browser.expect.element('#objectcontainer div p:nth-child(5) strong').text.to.equal('End - Frame:69');
@@ -264,9 +263,65 @@ module.exports = {
       .to.have.attribute("aria-disabled").equals("false");
   },
 
+  'confirm the next annotation is independent' : function (browser) {
+    // click the start button
+    browser.click('#startbutton');
+    browser.expect.element("#startbutton").to.have.attribute("aria-disabled").equals("true");
+    // check that the annotation shows up
+    browser.expect.element('#objectcontainer .trackobject').to.be.visible;
+    browser.expect.element('#objectcontainer .trackobject p').to.be.visible;
+    browser.expect.element('#objectcontainer div p:nth-child(5) strong').text.to.equal('Start - Frame:80');
+    browser.expect.element('#videoframe > div.boundingbox.ui-resizable.ui-draggable.ui-draggable-disabled.ui-state-disabled.ui-resizable-disabled.boundingboxlocked.ui-resizable-autohide').to.be.visible;
+    browser.expect.element('#objectcontainer > div:nth-child(1) > p.trackobjectheader > strong').text.to.not.equal('newword').before(1000);
+
+    // check that there is an end button, and it is enable (aria-disabled = false)
+    browser.expect.element('#endbutton').to.be.visible
+      .to.have.attribute("aria-disabled").equals("false");
+
+    // check that there is a warning if the slider isn't moved
+    browser.click('#endbutton');
+    // the alert has the right text
+    browser.getAlertText(function(result){
+      this.assert.equal(result.value, 'End frame must be after the start frame');
+      browser.acceptAlert();
+    });
+
+    // the end button is still visible
+    browser.expect.element('#endbutton').to.be.visible
+      .to.have.attribute("aria-disabled").equals("false");
+
+    // move the slider
+    browser
+      .useCss()
+      .moveToElement('#playerslider > a',  2,  2)
+      .mouseButtonDown(0)
+      .moveToElement('#playerslider',  500,  0) // Move to offset position of 200(x) 0(y)
+      .mouseButtonUp(0);
+
+    // click the end button
+    browser.click('#endbutton');
+    // the end button will be visible again
+    // browser.expect.element("#endbutton").to.have.attribute("aria-disabled").equals("true");
+    // check that the annotation shows up
+    browser.expect.element('#objectcontainer .trackobject').to.be.visible;
+    browser.expect.element('#objectcontainer .trackobject p').to.be.visible;
+    browser.expect.element('#objectcontainer > div:nth-child(1) > p:nth-child(5) > strong').text.to.equal('End - Frame:114');
+    // check that there is an end button, and it is enable (aria-disabled = false)
+    // browser.expect.element('#endbutton').to.be.visible
+    //   .to.have.attribute("aria-disabled").equals("false");
+
+    // enter text: #newWord
+    browser.expect.element('#newWord').to.be.visible;
+    browser.setValue('#newWord', ['truely_new_word', browser.Keys.ENTER]);
+
+    // check that the word is the same
+    browser.expect.element('#objectcontainer > div:nth-child(1) > p.trackobjectheader > strong').text.to.equal('truely_new_word').before(1000);
+    browser.expect.element('#objectcontainer > div:nth-child(2) > p.trackobjectheader > strong').text.to.equal('truely_new_word');
+  },
+
   'Test end' : function (browser) {
   	browser
-    .pause(2000)
+    .pause(1000)
 	  .end();
   }
 };
