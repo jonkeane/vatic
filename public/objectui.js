@@ -27,16 +27,16 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
     {
       // check currentobject, and adjust button status accordingly
       // start
-      if(this.tracks.current_annotation.has_start == true){
+      if(this.tracks.current_annotation != null && this.tracks.current_annotation.has_start == true){
         this.button.button("option", "disabled", true);
         this.startenabled = false;
-      } else {
+      } else  {
         this.button.button("option", "disabled", false);
         this.startenabled = true;
       }
 
       // end
-      if(this.tracks.current_annotation.has_end == true){
+      if(this.tracks.current_annotation != null && this.tracks.current_annotation.has_end == true){
         this.endbutton.button("option", "disabled", true);
         this.endenabled = false;
       } else {
@@ -45,7 +45,18 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
       }
 
       // if both ends exist, reset start and stop frames
-      if(this.tracks.current_annotation.has_start == true && this.tracks.current_annotation.has_end == true){
+      if(this.tracks.current_annotation != null && this.tracks.current_annotation.has_start == true && this.tracks.current_annotation.has_end == true){
+        this.startframe = job.start;
+        this.endframe = job.stop;
+        this.button.button("option", "disabled", false);
+        this.startenabled = true;
+        this.endbutton.button("option", "disabled", false);
+        this.endenabled = true;
+      }
+
+      // if there is no crruent_annotation, reset everything
+      // this is likely overkill, and is covered by the tests above.
+      if (this.tracks.current_annotation == null ){
         this.startframe = job.start;
         this.endframe = job.stop;
         this.button.button("option", "disabled", false);
@@ -441,13 +452,18 @@ function TrackObject(job, player, container, color, objectui, kind)
         this.tracks.current_annotation.has_start = true;
         this.tracks.current_annotation.has_end = true;
       }
-      if(this.kind == "start"){
+      if(this.tracks.current_annotation != null && this.kind == "start"){
         this.tracks.current_annotation.has_start = null;
         this.objectui.startframe = me.job.start;
       }
-      if(this.kind == "end"){
+      if(this.tracks.current_annotation != null && this.kind == "end"){
         this.tracks.current_annotation.has_end = null;
         this.objectui.endframe = me.job.stop;
+      }
+
+      // check that if both the start and the end annotations have been removed, null out current_annotation
+      if(this.tracks.current_annotation != null && this.tracks.current_annotation.has_start == null && this.tracks.current_annotation.has_end == null){
+        this.tracks.current_annotation = null;
       }
 
       this.objectui.update_button_ui(this);
