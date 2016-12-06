@@ -35,18 +35,18 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
     };
 }
 
-    this.connect = function(div1, div2, color, thickness) { // draw a line connecting elements
-        var off1 = this.getOffset(div1);
-        var off2 = this.getOffset(div2);
+    this.connect = function(start_track, end_track, color, thickness) { // draw a line connecting elements
+        var off1 = this.getOffset(start_track.handle[0]);
+        var off2 = this.getOffset(end_track.handle[0]);
         // distance
         var length = (off2.left - off1.left)-4;
         // make hr
         // add in identification information for when this needs to be deleted
-        var htmlLine = "<div style='padding:0px; margin:0px; height:" + thickness + "px; background-color:" + color + "; position:absolute; left:2px; top:2px; width:" + length + "px; z-index:0;' />";
+        var htmlLine = "<div class='crossbar', style='padding:0px; margin:0px; height:" + thickness + "px; background-color:" + color + "; position:absolute; left:2px; top:2px; width:" + length + "px; z-index:0;' />";
         //
         // alert(htmlLine);
         // document.body.innerHTML += htmlLine;
-        this.tracks.tracks[0].handle.append(htmlLine)
+        start_track.handle.append(htmlLine)
     }
 
     this.update_button_ui = function()
@@ -72,7 +72,6 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
 
       // if both ends exist, reset start and stop frames
       if(this.tracks.current_annotation != null && this.tracks.current_annotation.has_start == true && this.tracks.current_annotation.has_end == true){
-        this.connect(this.tracks.tracks[0].handle[0], this.tracks.tracks[1].handle[0], "blue", 4)
         this.startframe = job.start;
         this.endframe = job.stop;
         this.button.button("option", "disabled", false);
@@ -119,6 +118,7 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
 
         // If the current_annotation has both a start and a stop, start a new annotation
         if (this.tracks.current_annotation != null && this.tracks.current_annotation.has_start == true &&  this.tracks.current_annotation.has_end == true) {
+          // not run?
           this.tracks.current_annotation = null;
         }
 
@@ -197,6 +197,24 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
     	{
         this.endframe = player.frame;
     	}
+
+      // check if the current annotation has both a start and a stop, if so write the bar to connect the handles
+      if (this.tracks.current_annotation != null && this.tracks.current_annotation.has_start == true && this.tracks.current_annotation.has_end == true) {
+        // find the start and end track to the current track.
+        var curr_lbl = track.label;
+        var curr_tracks = tracks.tracks.filter(function(trck){
+          return trck.label == curr_lbl;
+        });
+        // if length<2 or >2 error
+        var start_track = curr_tracks.filter(function(trck){
+          return trck.kind == "start";
+        });
+        var end_track = curr_tracks.filter(function(trck){
+          return trck.kind == "end";
+        });
+
+        this.connect(start_track[0], end_track[0], this.tracks.current_annotation.color[0], 4)
+      }
 
       this.update_button_ui();
 

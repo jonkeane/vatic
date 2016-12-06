@@ -712,7 +712,7 @@ function Track(player, color, position, kind)
 
             this.handle.resizable({
                 handles: "n,w,s,e",
-                autoHide: true,
+                autoHide: false,
                 start: function() {
                     player.pause();
                     me.notifystartupdate();
@@ -779,12 +779,13 @@ function Track(player, color, position, kind)
         {
             position = this.estimate(frame);
         }
-
-        if (position.outside)
-        {
-            this.handle.hide();
-            return;
-        }
+        
+        // disables autohiding
+        // if (position.outside)
+        // {
+        //     this.handle.hide();
+        //     return;
+        // }
 
         this.handle.show();
 
