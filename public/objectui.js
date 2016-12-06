@@ -205,13 +205,13 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
         var curr_tracks = tracks.tracks.filter(function(trck){
           return trck.label == curr_lbl;
         });
-        // if length<2 or >2 error
         var start_track = curr_tracks.filter(function(trck){
-          return trck.kind == "start";
+          return trck.kind == "start" && trck.deleted == false;
         });
         var end_track = curr_tracks.filter(function(trck){
-          return trck.kind == "end";
+          return trck.kind == "end" && trck.deleted == false;
         });
+        // if length<1 or >1 error
 
         this.connect(start_track[0], end_track[0], this.tracks.current_annotation.color[0], 4)
       }
@@ -737,14 +737,23 @@ function TrackObject(job, player, container, color, objectui, kind)
             {
                 me.remove();
                 eventlog("removeobject", "Deleted an annotation");
-                // if ( me.job.attributes[me.track.label][me.attrid] == "End" )
-                // // if ( me.track.kind == "end" )
-            		// {
-            		//     $("#endbutton").button("option", "disabled", false);
-            		//     me.objectui.endframe = me.job.stop;
-            		//     me.objectui.endenabled = true;
-                //
-            		// }
+
+                // if this is an end annotation, delete the crossbar as well.
+                // this is not needed for start annotations, because the crossbar
+                // is specifically embedded in the start handle.
+                if ( me.job.attributes[me.track.label][me.attrid] == "End" )
+                // if ( me.track.kind == "end" )
+            		{
+                  var start_tracks = me.tracks.tracks.filter(function(trck){
+                    return trck.label == me.track.label && trck.kind == "start";
+                  });
+                  for(i in start_tracks){
+                    var hndl = start_tracks[i].handle
+                    hndl.find(".crossbar").remove()
+                  }
+
+                  eventlog("Deleted the crossbar associated with the start");
+            		}
                 // else if ( me.job.attributes[me.track.label][me.attrid] == "Start" )
                 // // else if ( me.track.kind == "start" )
             		// {
