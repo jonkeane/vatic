@@ -28,6 +28,7 @@ function instructions(job, h)
     }
     str += "<li>We will hand review your work.</li>";
     str += "<li>Sometimes the fingerspelled word might be cut off at the beginning or the end of the video. If it is, please type in just the letters that you can see.</li>";
+    str += "<li>It is possible that the video might not have any fingerspelled words. But it is important to check carefully. After viewing the whole video, if there are no fingerspelled words, please press the <strong>Submit HIT</strong> button</li>";
     str += "</ul>";
     h.append(str);
 
