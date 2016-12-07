@@ -23,6 +23,75 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
 
     this.objects = [];
 
+    // for drawing lines (both getOffset() and connect())
+    // from http://stackoverflow.com/questions/8672369/how-to-draw-a-line-between-two-divs
+    this.getOffset = function( el ) {
+    var rect = el.getBoundingClientRect();
+    return {
+        left: rect.left + window.pageXOffset,
+        top: rect.top + window.pageYOffset,
+        width: rect.width || el.offsetWidth,
+        height: rect.height || el.offsetHeight
+    };
+}
+
+    this.connect = function(start_track, end_track, color, thickness) { // draw a line connecting elements
+        var off1 = this.getOffset(start_track.handle[0]);
+        var off2 = this.getOffset(end_track.handle[0]);
+        // distance
+        var length = (off2.left - off1.left)-4;
+        // make hr
+        // add in identification information for when this needs to be deleted
+        var htmlLine = "<div class='crossbar', style='padding:0px; margin:0px; height:" + thickness + "px; background-color:" + color + "; position:absolute; left:2px; top:2px; width:" + length + "px; z-index:0;' />";
+        //
+        // alert(htmlLine);
+        // document.body.innerHTML += htmlLine;
+        start_track.handle.append(htmlLine)
+    }
+
+    this.update_button_ui = function()
+    {
+      // check currentobject, and adjust button status accordingly
+      // start
+      if(this.tracks.current_annotation != null && this.tracks.current_annotation.has_start == true){
+        this.button.button("option", "disabled", true);
+        this.startenabled = false;
+      } else  {
+        this.button.button("option", "disabled", false);
+        this.startenabled = true;
+      }
+
+      // end
+      if(this.tracks.current_annotation != null && this.tracks.current_annotation.has_end == true){
+        this.endbutton.button("option", "disabled", true);
+        this.endenabled = false;
+      } else {
+        this.endbutton.button("option", "disabled", false);
+        this.endenabled = true;
+      }
+
+      // if both ends exist, reset start and stop frames
+      if(this.tracks.current_annotation != null && this.tracks.current_annotation.has_start == true && this.tracks.current_annotation.has_end == true){
+        this.startframe = job.start;
+        this.endframe = job.stop;
+        this.button.button("option", "disabled", false);
+        this.startenabled = true;
+        this.endbutton.button("option", "disabled", false);
+        this.endenabled = true;
+      }
+
+      // if there is no crruent_annotation, reset everything
+      // this is likely overkill, and is covered by the tests above.
+      if (this.tracks.current_annotation == null ){
+        this.startframe = job.start;
+        this.endframe = job.stop;
+        this.button.button("option", "disabled", false);
+        this.startenabled = true;
+        this.endbutton.button("option", "disabled", false);
+        this.endenabled = true;
+      }
+    }
+
     this.startnewobject = function(start)
     {
         if (start == 1 && this.startenabled == false || (start == 2 && this.endenabled == false) )
@@ -47,8 +116,20 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
 
         this.instructions.fadeOut();
 
-        this.currentcolor = this.pickcolor();
-        this.drawer.color = this.currentcolor[0];
+        // If the current_annotation has both a start and a stop, start a new annotation
+        if (this.tracks.current_annotation != null && this.tracks.current_annotation.has_start == true &&  this.tracks.current_annotation.has_end == true) {
+          this.tracks.current_annotation = null;
+        }
+
+        if(this.tracks.current_annotation == null) {
+          // If there is no current_annotaiton, pick a new color
+          this.currentcolor = this.pickcolor();
+          this.drawer.color = this.currentcolor[0];
+        } else {
+          this.currentcolor = this.tracks.current_annotation.color;
+          this.drawer.color = this.currentcolor[0];
+        }
+
 //        this.drawer.enable();
 
 //        this.button.button("option", "disabled", true);
@@ -106,43 +187,36 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
       this.currentobject.initialize(this.counter, track, this.tracks);
       this.stopnewobject();
       this.currentobject.stateclassify(start);
-    	if ( start == 1 )
+
+      if ( start == 1 )
     	{
-        if ( this.endbutton[0].getAttribute("aria-disabled") == "false") {
-          // disable start button once clicked if the end button is active
-          this.button.button("option", "disabled", true);
-          this.startframe = player.frame;
-          this.startenabled = false;
-        } else if (this.endbutton[0].getAttribute("aria-disabled") == "true") {
-          // reenable both buttons, if the end button is already disabled.
-          this.button.button("option", "disabled", false);
-          this.endbutton.button("option", "disabled", false);
-          this.startenabled = true;
-          this.endenabled = true;
-          // turn off start/end frame for the next annotatoins
-          this.startframe = job.start;
-          this.endframe = job.stop;
-        }
+        this.startframe = player.frame;
     	}
     	else if ( start == 2 )
     	{
-        if ( this.button[0].getAttribute("aria-disabled") == "false") {
-          // disable end button once clicked if the start button is active
-          this.endbutton.button("option", "disabled", true);
-          this.endframe = player.frame;
-          this.endenabled = false;
-        } else if (this.button[0].getAttribute("aria-disabled") == "true") {
-          // reenable both buttons, if the start button is already disabled.
-          this.button.button("option", "disabled", false);
-          this.endbutton.button("option", "disabled", false);
-          this.startenabled = true;
-          this.endenabled = true;
-          // turn off start/end frame for the next annotatoins
-          this.startframe = job.start;
-          this.endframe = job.stop;
-        }
+        this.endframe = player.frame;
     	}
-    // change the label up for annotation?
+
+      // check if the current annotation has both a start and a stop, if so write the bar to connect the handles
+      if (this.tracks.current_annotation != null && this.tracks.current_annotation.has_start == true && this.tracks.current_annotation.has_end == true) {
+        // find the start and end track to the current track.
+        var curr_lbl = track.label;
+        var curr_tracks = tracks.tracks.filter(function(trck){
+          return trck.label == curr_lbl;
+        });
+        var start_track = curr_tracks.filter(function(trck){
+          return trck.kind == "start" && trck.deleted == false;
+        });
+        var end_track = curr_tracks.filter(function(trck){
+          return trck.kind == "end" && trck.deleted == false;
+        });
+        // if length<1 or >1 error
+
+        this.connect(start_track[0], end_track[0], this.tracks.current_annotation.color[0], 4)
+      }
+
+      this.update_button_ui();
+
     }
 
     this.stopnewobject = function()
@@ -192,6 +266,7 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
           kind = null;
         }
 
+        // need to add in current annotation methods?
         this.currentcolor = this.pickcolor();
         var obj = new TrackObject(this.job, this.player,
                                   container, this.currentcolor, this, kind);
@@ -257,6 +332,7 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
       }).click(function() {
         // start = 1
         me.startnewobject(1);
+      // calculates the positoin of the handles
 	    xtl = (me.player.frame*$("#playerslider").width())/(me.player.job.stop);
 	    me.stopdrawing(new Position(xtl, me.player.handle.height()+2, xtl+1, me.player.handle.height()+12), 1);
   	  });
@@ -411,6 +487,35 @@ function TrackObject(job, player, container, color, objectui, kind)
 
     this.remove = function()
     {
+      // add information back to current_annotation
+      // need to change bounds so that start/end cannot be reverse in order.
+      if(this.tracks.current_annotation != null && this.tracks.current_annotation.id != this.label) {
+        // check if there is no current_annotation already
+        this.tracks.current_annotation.id = this.track.label;
+        // this.tracks.current_annotation.color = this.color;
+        // this.tracks.current_annotation.has_start = true;
+        // this.tracks.current_annotation.has_end = true;
+      }
+      if(this.tracks.current_annotation != null && this.kind == "start"){
+        this.tracks.current_annotation.has_start = null;
+        this.tracks.current_annotation.start_frame = null;
+        this.objectui.startframe = me.job.start;
+        this.objectui.endframe = this.tracks.current_annotation.end_frame;
+      }
+      if(this.tracks.current_annotation != null && this.kind == "end"){
+        this.tracks.current_annotation.has_end = null;
+        this.tracks.current_annotation.end_frame = null;
+        this.objectui.endframe = me.job.stop;
+        this.objectui.startframe = this.tracks.current_annotation.start_frame;
+      }
+
+      // check that if both the start and the end annotations have been removed, null out current_annotation
+      if(this.tracks.current_annotation != null && this.tracks.current_annotation.has_start == null && this.tracks.current_annotation.has_end == null){
+        this.tracks.current_annotation = null;
+      }
+
+      this.objectui.update_button_ui(this);
+
         this.handle.slideUp(null, function() {
             me.handle.remove();
         });
@@ -454,10 +559,10 @@ function TrackObject(job, player, container, color, objectui, kind)
       // null out the id up for anno if both start and end buttons are endenabled
       // a bit of a hack, but it works.
       if (this.objectui.button[0].getAttribute("aria-disabled") == "false" && this.objectui.endbutton[0].getAttribute("aria-disabled") == "false") {
-        this.job.idupforanno = null;
+        // this.tracks.current_annotation = null;
       } else {
         // change the id up for anno in the objectUI
-        this.job.idupforanno = newlabelid;
+        this.tracks.current_annotation.id = newlabelid;
       }
 
       // find tracks with the old label
@@ -548,7 +653,7 @@ function TrackObject(job, player, container, color, objectui, kind)
         // do not loop over all labels, but rather start as empty string.
         // unless there's already an annotation up for annotation, then use the empty label.
 
-        if ( this.job.idupforanno == null){
+        if ( this.tracks.current_annotation == null){
           // There is no annotation currently being annotated, check if this job
           // has the magic label ""
           var magic_label = "";
@@ -568,14 +673,27 @@ function TrackObject(job, player, container, color, objectui, kind)
           } else {
             id_for_anno = magic_label_id;
           }
+          // set current_annotation object
+          this.tracks.current_annotation = new current_annotation(id = id_for_anno);
+          this.tracks.current_annotation.color = this.color;
+
+          // enable the submit button
+          $("#submitbutton").button("option", "disabled", false);
         }
         else {
           // There is an annotation being annotated, so use that id for new labels
-          id_for_anno = this.job.idupforanno;
+          id_for_anno = this.tracks.current_annotation.id;
         }
 
-        // set id up for anno
-        this.job.idupforanno = id_for_anno;
+        // update teh current_annotation markers
+        if(kind == "start"){
+          this.tracks.current_annotation.has_start = true;
+          this.tracks.current_annotation.start_frame = this.player.frame;
+        }
+        if(kind == "end"){
+          this.tracks.current_annotation.has_end = true;
+          this.tracks.current_annotation.end_frame = this.player.frame;
+        }
 
         this.finalize(id_for_anno, start);
         this.statefolddown();
@@ -627,21 +745,30 @@ function TrackObject(job, player, container, color, objectui, kind)
             {
                 me.remove();
                 eventlog("removeobject", "Deleted an annotation");
+
+                // if this is an end annotation, delete the crossbar as well.
+                // this is not needed for start annotations, because the crossbar
+                // is specifically embedded in the start handle.
                 if ( me.job.attributes[me.track.label][me.attrid] == "End" )
                 // if ( me.track.kind == "end" )
             		{
-            		    $("#endbutton").button("option", "disabled", false);
-            		    me.objectui.endframe = me.job.stop;
-            		    me.objectui.endenabled = true;
+                  var start_tracks = me.tracks.tracks.filter(function(trck){
+                    return trck.label == me.track.label && trck.kind == "start";
+                  });
+                  for(i in start_tracks){
+                    var hndl = start_tracks[i].handle
+                    hndl.find(".crossbar").remove()
+                  }
 
+                  eventlog("Deleted the crossbar associated with the start");
             		}
-                else if ( me.job.attributes[me.track.label][me.attrid] == "Start" )
-                // else if ( me.track.kind == "start" )
-            		{
-            		    $("#startbutton").button("option", "disabled", false);
-            		    me.objectui.startframe = me.job.start;
-            		    me.objectui.startenabled = true;
-            		}
+                // else if ( me.job.attributes[me.track.label][me.attrid] == "Start" )
+                // // else if ( me.track.kind == "start" )
+            		// {
+            		//     $("#startbutton").button("option", "disabled", false);
+            		//     me.objectui.startframe = me.job.start;
+            		//     me.objectui.startenabled = true;
+            		// }
 
             }
         });

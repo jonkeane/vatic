@@ -11,6 +11,10 @@ function ui_build(job)
     ui_setupbuttons(job, player, tracks);
     ui_setupslider(player);
     ui_setupsubmit(job, tracks, objectui);
+
+    // disable submit button until an annotation is made (or the end of the video has been reached)
+    $("#submitbutton").button("option", "disabled", true);
+
     ui_setupclickskip(job, player, tracks, objectui);
     // ui_setupkeyboardshortcuts(job, player);
     ui_setupkeyboardshortcuts_inputsafe(job, player);
@@ -39,7 +43,7 @@ function ui_setup(job)
 	actionstring = job.labels[key];
     $("<table>" +
         "<tr>" +
-            "<td><div id='instructionsbutton' class='button'>Instructions</div><div id='instructions'>Annotate the beginning and end of the fingerspelled word in the following video. <br/> Then type the word that was finerspelled into the box to the right of the video.</td>" +
+            "<td><div id='instructionsbutton' class='button'>Instructions</div><div id='instructions'>Annotate the beginning and end of any fingerspelled word in the following video. <br/> Then type the word that was finerspelled into the box to the right of the video.</td>" +
             "<td><div id='topbar'></div></td>" +
         "</tr>" +
         "<tr>" +
@@ -47,11 +51,11 @@ function ui_setup(job)
               "<td rowspan='2'><div id='sidebar'></div></td>" +
           "</tr><tr style='height: 15px;' ></tr>" +
           "<tr>" +
-              "<td><div id='bottombar'></div></td>" +
+              "<td/>" +
               "<td><div id='frameinfobar'></div></td>" +
           "</tr>" +
           "<tr>" +
-              "<td><div id='advancedoptions'></div></td>" +
+          "<td><div id='bottombar' style='float: left;'></div><div id='advancedoptions'></div></td>" +
               "<td><div id='submitbar'></div></td>" +
           "</tr>" +
       "</table>").appendTo(screen).css("width", "100%");
@@ -64,6 +68,9 @@ function ui_setup(job)
                           "height": job.height + "px",
                           "margin": "0 auto"})
                     .parent().css("width", playerwidth + "px");
+    // place slider just below video (to line up with marks)
+    $("#videoframe").append("<div id='playerslider'></div>");
+
 
     $("#sidebar").css({"height": job.height + "px",
                        "width": "205px"});
@@ -74,7 +81,8 @@ function ui_setup(job)
     $("#frameinfobar").append("<div style='float: left;'><strong>Frame: </strong></div><div id='frameinfo'></div>");
     $("#frameinfo").css({"width": "30px", "padding-left": "10px", "float": "left"});
 
-    $("#bottombar").append("<div id='playerslider'></div>");
+    // place slider next to rewind / play buttons
+    // $("#bottombar").append("<div id='playerslider'></div>");
     $("#bottombar").append("<div class='button' id='rewindbutton'>Rewind</div> ");
     $("#bottombar").append("<div class='button' id='playbutton'>Play</div> ");
 
@@ -101,9 +109,7 @@ function ui_setup(job)
     "<input type='checkbox' id='annotateoptionsresize'>" +
     // "<label for='annotateoptionsresize'>Disable Resize?</label> " +
     "<input type='checkbox' id='annotateoptionshideboxes'>" +
-    "<label for='annotateoptionshideboxes'>Hide Boxes?</label> " +
-    "<input type='checkbox' id='annotateoptionshideboxtext'>" +
-    "<label for='annotateoptionshideboxtext'>Hide Labels?</label> ");
+    "<label for='annotateoptionshideboxes'>Hide Boxes?</label> ");
 
     $("#advancedoptions").append(
     "<div id='speedcontrol'>" +
@@ -197,6 +203,8 @@ function ui_setupbuttons(job, player, tracks)
         if (player.frame == player.job.stop)
         {
             $("#playbutton").button("option", "disabled", true);
+            // enable the submit button if the end of the track has been reached
+            $("#submitbutton").button("option", "disabled", false);
         }
         else if ($("#playbutton").button("option", "disabled"))
         {
@@ -422,9 +430,10 @@ function ui_setupslider(player)
         "background-image": "none"});
 
     slider.css({
-        marginTop: "6px",
-        width: parseInt(slider.parent().css("width")) - 200 + "px",
-        float: "right"
+        marginTop: parseInt(slider.parent().css("height")) +20 + "px", // for under video position only
+        width: parseInt(slider.parent().css("width")) + "px", // for under video position only
+        float: "bottom",
+        position: "absolute" // for under video position only
     });
 
     player.onupdate.push(function() {
@@ -550,7 +559,7 @@ function ui_submit(job, tracks, objectui)
     });
 
     // Check the form of the labels present by grouping them by label, and then checking each group
-    for (lbl in labels_to_check)
+    for (lbl in labels_to_check) {
       console.log("Checking label: "+labels_to_check[lbl]);
       var matched_tracks = $.grep(tracks_non_deleted, function(e) { return e.label == labels_to_check[lbl] });
 
@@ -560,17 +569,17 @@ function ui_submit(job, tracks, objectui)
       var start_anno = $.grep(matched_tracks, function(e) { return e.kind == "start" });
       var end_anno = $.grep(matched_tracks, function(e) { return e.kind == "end" });
       if (start_anno.length < 1) {
-        alert("There is no Start annotation for the word '"+job.labels[labels_to_check[lbl]]+"' Please add one.");
+        alert("There is no Start annotation for the word '"+objectui.job.labels[labels_to_check[lbl]]+"' Please add one.");
         return;
       } else if (start_anno.length > 1) {
-        alert("There is more than one Start annotation for the word '"+job.labels[labels_to_check[lbl]]+"' Please delete one.");
+        alert("There is more than one Start annotation for the word '"+objectui.job.labels[labels_to_check[lbl]]+"' Please delete one.");
         return;
       }
       if (end_anno.length < 1) {
-        alert("There is no End annotation for the word '"+job.labels[labels_to_check[lbl]]+"' Please add one.");
+        alert("There is no End annotation for the word '"+objectui.job.labels[labels_to_check[lbl]]+"' Please add one.");
         return;
       } else if (end_anno.length > 1) {
-        alert("There is more than one End annotation for the word '"+job.labels[labels_to_check[lbl]]+"' Please delete one.");
+        alert("There is more than one End annotation for the word '"+objectui.job.labels[labels_to_check[lbl]]+"' Please delete one.");
         return;
       }
       console.log("stop here");
@@ -578,12 +587,13 @@ function ui_submit(job, tracks, objectui)
       // check if there are exactly two annotations
       // this hsould always be true given the checks above, but is good to check none the less.
       if (matched_tracks.length > 2){
-        alert("There are more annotations than expected for the word '"+job.labels[labels_to_check[lbl]]+"' Please delete the extra annotations.");
+        alert("There are more annotations than expected for the word '"+objectui.job.labels[labels_to_check[lbl]]+"' Please delete the extra annotations.");
         return;
       } else if (matched_tracks.length < 2){
-        alert("The Start or End annotation is missing for the word '"+job.labels[labels_to_check[lbl]]+"' Please add the extra annotation.");
+        alert("The Start or End annotation is missing for the word '"+objectui.job.labels[labels_to_check[lbl]]+"' Please add the extra annotation.");
         return;
       }
+    }
 
     // Go through the annotations and make sure that they are well-formed
     var magic_label = ""; // magic label to ensure the annotations are not default
@@ -772,7 +782,7 @@ function ui_closeinstructions()
     $("#instructionsdialog").remove();
     eventlog("instructions", "Popdown instructions");
 
-    ui_enable(1);
+    ui_enable();
 }
 
 function ui_disable()

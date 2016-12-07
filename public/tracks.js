@@ -263,6 +263,8 @@ function TrackCollection(player, job)
 
     this.onnewobject = [];
 
+    this.current_annotation = null;
+
     player.onupdate.push(function() {
         me.update(player.frame);
     });
@@ -656,7 +658,7 @@ function Track(player, color, position, kind)
         if (this.handle != null)
         {
             var t = this.handle.children(".boundingboxtext");
-            t.html(value).show();
+            t.html(value).hide();
         }
 
     }
@@ -710,7 +712,7 @@ function Track(player, color, position, kind)
 
             this.handle.resizable({
                 handles: "n,w,s,e",
-                autoHide: true,
+                autoHide: false,
                 start: function() {
                     player.pause();
                     me.notifystartupdate();
@@ -778,11 +780,12 @@ function Track(player, color, position, kind)
             position = this.estimate(frame);
         }
 
-        if (position.outside)
-        {
-            this.handle.hide();
-            return;
-        }
+        // disables autohiding
+        // if (position.outside)
+        // {
+        //     this.handle.hide();
+        //     return;
+        // }
 
         this.handle.show();
 
@@ -975,7 +978,7 @@ function Track(player, color, position, kind)
         return new Position(xtl, ytl, xbr, ybr, occluded, outside);
     }
 
-    this.draw(this.player.frame);
+    this.draw(this.player.frame); // this  *actually* draws the box.
     this.setlock(true);
 }
 
@@ -1163,4 +1166,21 @@ function Position(xtl, ytl, xbr, ybr, occluded, outside)
                             this.occluded,
                             this.outside)
     }
+}
+
+
+
+
+/*
+ * A structure to store the current_annotation
+ */
+function current_annotation(id)
+{
+    this.id = id;
+    this.has_start = null;
+    this.start_frame = null;
+    this.has_end = null;
+    this.end_frame;
+    this.label = null;
+    this.color = null;
 }
