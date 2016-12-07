@@ -23,6 +23,32 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
 
     this.objects = [];
 
+    // for drawing lines (both getOffset() and connect())
+    // from http://stackoverflow.com/questions/8672369/how-to-draw-a-line-between-two-divs
+    this.getOffset = function( el ) {
+    var rect = el.getBoundingClientRect();
+    return {
+        left: rect.left + window.pageXOffset,
+        top: rect.top + window.pageYOffset,
+        width: rect.width || el.offsetWidth,
+        height: rect.height || el.offsetHeight
+    };
+}
+
+    this.connect = function(start_track, end_track, color, thickness) { // draw a line connecting elements
+        var off1 = this.getOffset(start_track.handle[0]);
+        var off2 = this.getOffset(end_track.handle[0]);
+        // distance
+        var length = (off2.left - off1.left)-4;
+        // make hr
+        // add in identification information for when this needs to be deleted
+        var htmlLine = "<div class='crossbar', style='padding:0px; margin:0px; height:" + thickness + "px; background-color:" + color + "; position:absolute; left:2px; top:2px; width:" + length + "px; z-index:0;' />";
+        //
+        // alert(htmlLine);
+        // document.body.innerHTML += htmlLine;
+        start_track.handle.append(htmlLine)
+    }
+
     this.update_button_ui = function()
     {
       // check currentobject, and adjust button status accordingly
@@ -170,6 +196,24 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
     	{
         this.endframe = player.frame;
     	}
+
+      // check if the current annotation has both a start and a stop, if so write the bar to connect the handles
+      if (this.tracks.current_annotation != null && this.tracks.current_annotation.has_start == true && this.tracks.current_annotation.has_end == true) {
+        // find the start and end track to the current track.
+        var curr_lbl = track.label;
+        var curr_tracks = tracks.tracks.filter(function(trck){
+          return trck.label == curr_lbl;
+        });
+        var start_track = curr_tracks.filter(function(trck){
+          return trck.kind == "start" && trck.deleted == false;
+        });
+        var end_track = curr_tracks.filter(function(trck){
+          return trck.kind == "end" && trck.deleted == false;
+        });
+        // if length<1 or >1 error
+
+        this.connect(start_track[0], end_track[0], this.tracks.current_annotation.color[0], 4)
+      }
 
       this.update_button_ui();
 
@@ -447,18 +491,22 @@ function TrackObject(job, player, container, color, objectui, kind)
       // need to change bounds so that start/end cannot be reverse in order.
       if(this.tracks.current_annotation != null && this.tracks.current_annotation.id != this.label) {
         // check if there is no current_annotation already
-        this.tracks.current_annotation = new current_annotation(id = this.track.label);
-        this.tracks.current_annotation.color = this.color;
-        this.tracks.current_annotation.has_start = true;
-        this.tracks.current_annotation.has_end = true;
+        this.tracks.current_annotation.id = this.track.label;
+        // this.tracks.current_annotation.color = this.color;
+        // this.tracks.current_annotation.has_start = true;
+        // this.tracks.current_annotation.has_end = true;
       }
       if(this.tracks.current_annotation != null && this.kind == "start"){
         this.tracks.current_annotation.has_start = null;
+        this.tracks.current_annotation.start_frame = null;
         this.objectui.startframe = me.job.start;
+        this.objectui.endframe = this.tracks.current_annotation.end_frame;
       }
       if(this.tracks.current_annotation != null && this.kind == "end"){
         this.tracks.current_annotation.has_end = null;
+        this.tracks.current_annotation.end_frame = null;
         this.objectui.endframe = me.job.stop;
+        this.objectui.startframe = this.tracks.current_annotation.start_frame;
       }
 
       // check that if both the start and the end annotations have been removed, null out current_annotation
@@ -628,6 +676,9 @@ function TrackObject(job, player, container, color, objectui, kind)
           // set current_annotation object
           this.tracks.current_annotation = new current_annotation(id = id_for_anno);
           this.tracks.current_annotation.color = this.color;
+
+          // enable the submit button
+          $("#submitbutton").button("option", "disabled", false);
         }
         else {
           // There is an annotation being annotated, so use that id for new labels
@@ -637,9 +688,11 @@ function TrackObject(job, player, container, color, objectui, kind)
         // update teh current_annotation markers
         if(kind == "start"){
           this.tracks.current_annotation.has_start = true;
+          this.tracks.current_annotation.start_frame = this.player.frame;
         }
         if(kind == "end"){
           this.tracks.current_annotation.has_end = true;
+          this.tracks.current_annotation.end_frame = this.player.frame;
         }
 
         this.finalize(id_for_anno, start);
@@ -692,14 +745,23 @@ function TrackObject(job, player, container, color, objectui, kind)
             {
                 me.remove();
                 eventlog("removeobject", "Deleted an annotation");
-                // if ( me.job.attributes[me.track.label][me.attrid] == "End" )
-                // // if ( me.track.kind == "end" )
-            		// {
-            		//     $("#endbutton").button("option", "disabled", false);
-            		//     me.objectui.endframe = me.job.stop;
-            		//     me.objectui.endenabled = true;
-                //
-            		// }
+
+                // if this is an end annotation, delete the crossbar as well.
+                // this is not needed for start annotations, because the crossbar
+                // is specifically embedded in the start handle.
+                if ( me.job.attributes[me.track.label][me.attrid] == "End" )
+                // if ( me.track.kind == "end" )
+            		{
+                  var start_tracks = me.tracks.tracks.filter(function(trck){
+                    return trck.label == me.track.label && trck.kind == "start";
+                  });
+                  for(i in start_tracks){
+                    var hndl = start_tracks[i].handle
+                    hndl.find(".crossbar").remove()
+                  }
+
+                  eventlog("Deleted the crossbar associated with the start");
+            		}
                 // else if ( me.job.attributes[me.track.label][me.attrid] == "Start" )
                 // // else if ( me.track.kind == "start" )
             		// {

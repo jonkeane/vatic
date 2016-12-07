@@ -1,7 +1,7 @@
 function instructions(job, h)
 {
     h.append("<h1>Important Instructions</h1>");
-    h.append("<p>In this task, we ask you to annotate a video. You are to mark the start and end of a fingerspelled word in the video. Then you will be asked to type in what word was fingerspelled. These instructions will give you tips on how to best use our tool.</p>");
+    h.append("<p>In this task, we ask you to annotate a video. You are to mark the start and end of all fingerspelled words in the video. Then you will be asked to type in what word was fingerspelled. These instructions will give you tips on how to best use our tool.</p>");
     // h.append("<p>Please watch the below video (and/or read the below section) for instructions:</p>");
     // h.append('<iframe width="640" height="360" src="http://www.youtube.com/embed/K8wSD_s8Ucg" frameborder="0" allowfullscreen></iframe>');
     //
@@ -9,10 +9,9 @@ function instructions(job, h)
     h.append("<img src='action.jpg' align='right' style='border:2px solid black; border-style: inset'>");
     h.append("<h2>Crash Course</h2>");
     var str = "<ul>";
-    str += "<li>There might be more than one fingerspelled word in the video shown. Currently you can only annotate one word, so pick one to annotate, and ignore the others.</li>";
-    str += "<li>Make your fingerspelled word interval as tight as possible.</li>";
-    str += "<li>Start of the fingerspelled word should always precede the End.</li>";
-    str += "<li>The minimum separation between Start and End frames is 10.</li>";
+    str += "<li>There might be more than one fingerspelled word in the video shown.</li>";
+    str += "<li>Make the beginning and end annotatinos for the fingerspelled word as close to the beginning and ending of the word as possible.</li>";
+    str += "<li>The start of the fingerspelled word should always be before the end.</li>";
     if (job.perobject > 0)
     {
         var amount = Math.floor(job.perobject * 100);
@@ -28,13 +27,14 @@ function instructions(job, h)
         str += "<li>When the video pauses, adjust your annotations.</li>";
     }
     str += "<li>We will hand review your work.</li>";
-    str += "<li>Sometimes the fingerspelled word could be only partially in the video.</li>";
+    str += "<li>Sometimes the fingerspelled word might be cut off at the beginning or the end of the video. If it is, please type in just the letters that you can see.</li>";
+    str += "<li>It is possible that the video might not have any fingerspelled words. But it is important to check carefully. After viewing the whole video, if there are no fingerspelled words, please press the <strong>Submit HIT</strong> button</li>";
     str += "</ul>";
     h.append(str);
 
     h.append("<h2>Getting Started</h2>");
     h.append("<p>Press the <strong>Play</strong> button to play the video.</p>");
-    h.append("<p><strong>Pause</strong> the video when you reach the frame in which the specified fingerspelled words begins.</p>");
+    h.append("<p><strong>Pause</strong> the video when you reach the frame when the specified fingerspelled word begins.</p>");
     h.append("<p>Click the <strong>Start</strong> button to mark the start of the fingerspelled word. </p>");
 
     h.append("<img src='label.jpg' align='right' style='border:2px solid black; border-style: inset'>");

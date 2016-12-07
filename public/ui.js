@@ -11,6 +11,10 @@ function ui_build(job)
     ui_setupbuttons(job, player, tracks);
     ui_setupslider(player);
     ui_setupsubmit(job, tracks, objectui);
+
+    // disable submit button until an annotation is made (or the end of the video has been reached)
+    $("#submitbutton").button("option", "disabled", true);
+
     ui_setupclickskip(job, player, tracks, objectui);
     // ui_setupkeyboardshortcuts(job, player);
     ui_setupkeyboardshortcuts_inputsafe(job, player);
@@ -39,7 +43,7 @@ function ui_setup(job)
 	actionstring = job.labels[key];
     $("<table>" +
         "<tr>" +
-            "<td><div id='instructionsbutton' class='button'>Instructions</div><div id='instructions'>Annotate the beginning and end of the fingerspelled word in the following video. <br/> Then type the word that was finerspelled into the box to the right of the video.</td>" +
+            "<td><div id='instructionsbutton' class='button'>Instructions</div><div id='instructions'>Annotate the beginning and end of any fingerspelled word in the following video. <br/> Then type the word that was finerspelled into the box to the right of the video.</td>" +
             "<td><div id='topbar'></div></td>" +
         "</tr>" +
         "<tr>" +
@@ -105,9 +109,7 @@ function ui_setup(job)
     "<input type='checkbox' id='annotateoptionsresize'>" +
     // "<label for='annotateoptionsresize'>Disable Resize?</label> " +
     "<input type='checkbox' id='annotateoptionshideboxes'>" +
-    "<label for='annotateoptionshideboxes'>Hide Boxes?</label> " +
-    "<input type='checkbox' id='annotateoptionshideboxtext'>" +
-    "<label for='annotateoptionshideboxtext'>Hide Labels?</label> ");
+    "<label for='annotateoptionshideboxes'>Hide Boxes?</label> ");
 
     $("#advancedoptions").append(
     "<div id='speedcontrol'>" +
@@ -201,6 +203,8 @@ function ui_setupbuttons(job, player, tracks)
         if (player.frame == player.job.stop)
         {
             $("#playbutton").button("option", "disabled", true);
+            // enable the submit button if the end of the track has been reached
+            $("#submitbutton").button("option", "disabled", false);
         }
         else if ($("#playbutton").button("option", "disabled"))
         {
@@ -778,7 +782,7 @@ function ui_closeinstructions()
     $("#instructionsdialog").remove();
     eventlog("instructions", "Popdown instructions");
 
-    ui_enable(1);
+    ui_enable();
 }
 
 function ui_disable()
