@@ -118,7 +118,6 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
 
         // If the current_annotation has both a start and a stop, start a new annotation
         if (this.tracks.current_annotation != null && this.tracks.current_annotation.has_start == true &&  this.tracks.current_annotation.has_end == true) {
-          // not run?
           this.tracks.current_annotation = null;
         }
 
@@ -677,6 +676,9 @@ function TrackObject(job, player, container, color, objectui, kind)
           // set current_annotation object
           this.tracks.current_annotation = new current_annotation(id = id_for_anno);
           this.tracks.current_annotation.color = this.color;
+
+          // enable the submit button
+          $("#submitbutton").button("option", "disabled", false);
         }
         else {
           // There is an annotation being annotated, so use that id for new labels

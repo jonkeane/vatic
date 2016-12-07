@@ -11,6 +11,10 @@ function ui_build(job)
     ui_setupbuttons(job, player, tracks);
     ui_setupslider(player);
     ui_setupsubmit(job, tracks, objectui);
+
+    // disable submit button until an annotation is made (or the end of the video has been reached)
+    $("#submitbutton").button("option", "disabled", true);
+
     ui_setupclickskip(job, player, tracks, objectui);
     // ui_setupkeyboardshortcuts(job, player);
     ui_setupkeyboardshortcuts_inputsafe(job, player);
@@ -199,6 +203,8 @@ function ui_setupbuttons(job, player, tracks)
         if (player.frame == player.job.stop)
         {
             $("#playbutton").button("option", "disabled", true);
+            // enable the submit button if the end of the track has been reached
+            $("#submitbutton").button("option", "disabled", false);
         }
         else if ($("#playbutton").button("option", "disabled"))
         {
