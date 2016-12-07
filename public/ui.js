@@ -43,7 +43,7 @@ function ui_setup(job)
 	actionstring = job.labels[key];
     $("<table>" +
         "<tr>" +
-            "<td><div id='instructionsbutton' class='button'>Instructions</div><div id='instructions'>Annotate the beginning and end of the fingerspelled word in the following video. <br/> Then type the word that was finerspelled into the box to the right of the video.</td>" +
+            "<td><div id='instructionsbutton' class='button'>Instructions</div><div id='instructions'>Annotate the beginning and end of any fingerspelled word in the following video. <br/> Then type the word that was finerspelled into the box to the right of the video.</td>" +
             "<td><div id='topbar'></div></td>" +
         "</tr>" +
         "<tr>" +
@@ -782,7 +782,7 @@ function ui_closeinstructions()
     $("#instructionsdialog").remove();
     eventlog("instructions", "Popdown instructions");
 
-    ui_enable(1);
+    ui_enable();
 }
 
 function ui_disable()
