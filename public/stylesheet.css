@@ -247,9 +247,9 @@ code
 
 .keyboardshortcuts code
 {
-    display : block;
+    /*display : block;*/
     width : 100px;
-    float : left;
+    /*float : left; */
 }
 
 .trackobject
