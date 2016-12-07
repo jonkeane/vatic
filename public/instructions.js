@@ -27,7 +27,7 @@ function instructions(job, h)
         str += "<li>When the video pauses, adjust your annotations.</li>";
     }
     str += "<li>We will hand review your work.</li>";
-    str += "<li>Sometimes the fingerspelled word could be only partially in the video.</li>";
+    str += "<li>Sometimes the fingerspelled word might be cut off at the beginning or the end of the video. If it is, please type in just the letters that you can see.</li>";
     str += "</ul>";
     h.append(str);
 
