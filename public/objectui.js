@@ -492,18 +492,22 @@ function TrackObject(job, player, container, color, objectui, kind)
       // need to change bounds so that start/end cannot be reverse in order.
       if(this.tracks.current_annotation != null && this.tracks.current_annotation.id != this.label) {
         // check if there is no current_annotation already
-        this.tracks.current_annotation = new current_annotation(id = this.track.label);
-        this.tracks.current_annotation.color = this.color;
-        this.tracks.current_annotation.has_start = true;
-        this.tracks.current_annotation.has_end = true;
+        this.tracks.current_annotation.id = this.track.label;
+        // this.tracks.current_annotation.color = this.color;
+        // this.tracks.current_annotation.has_start = true;
+        // this.tracks.current_annotation.has_end = true;
       }
       if(this.tracks.current_annotation != null && this.kind == "start"){
         this.tracks.current_annotation.has_start = null;
+        this.tracks.current_annotation.start_frame = null;
         this.objectui.startframe = me.job.start;
+        this.objectui.endframe = this.tracks.current_annotation.end_frame;
       }
       if(this.tracks.current_annotation != null && this.kind == "end"){
         this.tracks.current_annotation.has_end = null;
+        this.tracks.current_annotation.end_frame = null;
         this.objectui.endframe = me.job.stop;
+        this.objectui.startframe = this.tracks.current_annotation.start_frame;
       }
 
       // check that if both the start and the end annotations have been removed, null out current_annotation
@@ -682,9 +686,11 @@ function TrackObject(job, player, container, color, objectui, kind)
         // update teh current_annotation markers
         if(kind == "start"){
           this.tracks.current_annotation.has_start = true;
+          this.tracks.current_annotation.start_frame = this.player.frame;
         }
         if(kind == "end"){
           this.tracks.current_annotation.has_end = true;
+          this.tracks.current_annotation.end_frame = this.player.frame;
         }
 
         this.finalize(id_for_anno, start);

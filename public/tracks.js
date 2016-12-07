@@ -779,7 +779,7 @@ function Track(player, color, position, kind)
         {
             position = this.estimate(frame);
         }
-        
+
         // disables autohiding
         // if (position.outside)
         // {
@@ -1178,7 +1178,9 @@ function current_annotation(id)
 {
     this.id = id;
     this.has_start = null;
+    this.start_frame = null;
     this.has_end = null;
+    this.end_frame;
     this.label = null;
     this.color = null;
 }
