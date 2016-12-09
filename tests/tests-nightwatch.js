@@ -147,7 +147,7 @@ module.exports = {
     browser.expect.element('#objectcontainer > div:nth-child(1) > p.trackobjectheader.change2word > strong').text.to.equal('testwordtwo').before(1000);
     browser.expect.element('#objectcontainer > div:nth-child(2) > p.trackobjectheader.change0word > strong').text.to.equal('testwordtwo');
 
-    // confirm the start adn end buttons are both enabled
+    // confirm the start and end buttons are both enabled
     browser.expect.element('#startbutton').to.be.visible
       .to.have.attribute("aria-disabled").equals("false");
     browser.expect.element('#endbutton').to.be.visible
@@ -204,7 +204,7 @@ module.exports = {
     browser.expect.element('#startbutton').to.be.visible
       .to.have.attribute("aria-disabled").equals("false");
 
-    // move the slider (in the wrong direction)
+    // move the slider (in the right direction)
     browser
       .useCss()
       .moveToElement('#playerslider > a',  2,  2)
@@ -225,7 +225,7 @@ module.exports = {
   },
 
 
-  'delete start and end annotation' : function (browser) {
+  'delete start annotation' : function (browser) {
     browser.expect.element('#objectcontainer .trackobject p').to.be.visible;
     browser.expect.element('#objectcontainer div p:nth-child(5) strong').text.to.equal('Start - Frame:80');
     browser.expect.element('#objectcontainer .trackobject p').to.be.visible;
@@ -242,9 +242,53 @@ module.exports = {
 
     browser.expect.element('#objectcontainer div p:nth-child(5) strong').text.to.not.equal('Start - Frame:80').before(1000);
     browser.expect.element('#objectcontainer div p:nth-child(5) strong').text.to.equal('End - Frame:92');
+  },
 
+  'confirm start warning' : function (browser) {
+    // move the slider (in the wrong direction)
+    browser
+      .useCss()
+      .moveToElement('#playerslider > a',  2,  2)
+      .mouseButtonDown(0)
+      .moveToElement('#playerslider',  450,  0) // Move to offset position of 200(x) 0(y)
+      .mouseButtonUp(0);
 
-    // delete the start track
+    // check that there is a warning if the slider is moved in the wrong direction
+    browser.click('#startbutton');
+    // the alert has the right text
+    browser.getAlertText(function(result){
+      this.assert.equal(result.value, 'Start frame must be before the end frame');
+      browser.acceptAlert();
+    });
+    // the end button is still visible
+    browser.expect.element('#startbutton').to.be.visible
+      .to.have.attribute("aria-disabled").equals("false");
+    },
+
+    'replace start' : function (browser) {
+    // move the slider (in the right direction)
+    browser
+      .useCss()
+      .moveToElement('#playerslider > a',  2,  2)
+      .mouseButtonDown(0)
+      .moveToElement('#playerslider',  350,  0) // Move to offset position of 200(x) 0(y)
+      .mouseButtonUp(0);
+
+    // click the start button
+    browser.click('#startbutton');
+    // check that the annotation shows up
+    browser.expect.element('#objectcontainer .trackobject').to.be.visible;
+    browser.expect.element('#objectcontainer .trackobject p').to.be.visible;
+    browser.expect.element('#objectcontainer div p:nth-child(5) strong').text.to.equal('Start - Frame:80');
+
+    // check that the word is the correct
+    browser.expect.element('#objectcontainer > div:nth-child(1) > p.trackobjectheader.change5word > strong').text.to.equal('newword').before(1000);
+    // check that the word is the correct
+    browser.expect.element('#objectcontainer > div:nth-child(2) > p.trackobjectheader.change3word > strong').text.to.equal('newword').before(1000);
+  },
+
+  'delete the end annotation' : function (browser) {
+    // delete the end track
     browser.click('#trackobject3delete');
     // the alert has the right text
     browser.getAlertText(function(result){
@@ -252,25 +296,75 @@ module.exports = {
       browser.acceptAlert();
     });
 
-
     browser.expect.element('#objectcontainer div p:nth-child(5) strong').text.to.not.equal('End - Frame:92').before(1000);
-    browser.expect.element('#objectcontainer div p:nth-child(5) strong').text.to.equal('End - Frame:69');
+    browser.expect.element('#objectcontainer > div:nth-child(1) > p:nth-child(5) > strong').text.to.equal('Start - Frame:80');
 
     // check that the start/end buttons are enabled (aria-disabled = false)
     browser.expect.element('#endbutton').to.be.visible
       .to.have.attribute("aria-disabled").equals("false");
     browser.expect.element('#startbutton').to.be.visible
+      .to.have.attribute("aria-disabled").equals("true");
+  },
+
+  'confirm end warning' : function (browser) {
+    // move the slider (in the wrong direction)
+    browser
+      .useCss()
+      .moveToElement('#playerslider > a',  2,  2)
+      .mouseButtonDown(0)
+      .moveToElement('#playerslider',  250,  0) // Move to offset position of 200(x) 0(y)
+      .mouseButtonUp(0);
+
+    // check that there is a warning if the slider is moved in the wrong direction
+    browser.click('#endbutton');
+    // the alert has the right text
+    browser.getAlertText(function(result){
+      this.assert.equal(result.value, 'End frame must be after the start frame');
+      browser.acceptAlert();
+    });
+    // the end button is still visible
+    browser.expect.element('#endbutton').to.be.visible
       .to.have.attribute("aria-disabled").equals("false");
+    },
+
+    'replace end' : function (browser) {
+    // move the slider (in the right direction)
+    browser
+      .useCss()
+      .moveToElement('#playerslider > a',  2,  2)
+      .mouseButtonDown(0)
+      .moveToElement('#playerslider',  400,  0) // Move to offset position of 200(x) 0(y)
+      .mouseButtonUp(0);
+
+    // click the start button
+    browser.click('#endbutton');
+    // check that the annotation shows up
+    browser.expect.element('#objectcontainer .trackobject').to.be.visible;
+    browser.expect.element('#objectcontainer .trackobject p').to.be.visible;
+    browser.expect.element('#objectcontainer div p:nth-child(5) strong').text.to.equal('End - Frame:92');
+
+    // check that the word is the correct
+    browser.expect.element('#objectcontainer > div:nth-child(1) > p.trackobjectheader.change6word > strong').text.to.equal('newword').before(1000);
+    // check that the word is the correct
+    browser.expect.element('#objectcontainer > div:nth-child(2) > p.trackobjectheader.change5word > strong').text.to.equal('newword').before(1000);
   },
 
   'confirm the next annotation is independent' : function (browser) {
+    // move the slider
+    browser
+      .useCss()
+      .moveToElement('#playerslider > a',  2,  2)
+      .mouseButtonDown(0)
+      .moveToElement('#playerslider',  450,  0) // Move to offset position of 200(x) 0(y)
+      .mouseButtonUp(0);
+
     // click the start button
     browser.click('#startbutton');
     browser.expect.element("#startbutton").to.have.attribute("aria-disabled").equals("true");
     // check that the annotation shows up
     browser.expect.element('#objectcontainer .trackobject').to.be.visible;
     browser.expect.element('#objectcontainer .trackobject p').to.be.visible;
-    browser.expect.element('#objectcontainer div p:nth-child(5) strong').text.to.equal('Start - Frame:80');
+    browser.expect.element('#objectcontainer div p:nth-child(5) strong').text.to.equal('Start - Frame:103');
 //    browser.expect.element('#videoframe > div.boundingbox.ui-resizable.ui-draggable.ui-draggable-disabled.ui-state-disabled.ui-resizable-disabled.boundingboxlocked.ui-resizable-autohide').to.be.visible;
     browser.expect.element('#objectcontainer > div:nth-child(1) > p.trackobjectheader > strong').text.to.not.equal('newword').before(1000);
 
@@ -319,9 +413,73 @@ module.exports = {
     browser.expect.element('#objectcontainer > div:nth-child(2) > p.trackobjectheader > strong').text.to.equal('truely_new_word');
   },
 
+  'check color synchronization of annotation boxes' : function (browser) {
+    browser.expect.element('#objectcontainer > div:nth-child(1)')
+      .to.have.css('background-color').which.equals('rgba(255, 206, 166, 1)');
+    browser.expect.element('#objectcontainer > div:nth-child(1)')
+      .to.have.css('border-color').which.equals('rgb(255, 206, 166)');
+    browser.expect.element('#objectcontainer > div:nth-child(2)')
+      .to.have.css('background-color').which.equals('rgba(255, 206, 166, 1)');
+    browser.expect.element('#objectcontainer > div:nth-child(2)')
+      .to.have.css('border-color').which.equals('rgb(255, 206, 166)');
+
+    browser.expect.element('#objectcontainer > div:nth-child(3)')
+      .to.have.css('background-color').which.equals('rgba(255, 166, 166, 1)');
+    browser.expect.element('#objectcontainer > div:nth-child(3)')
+      .to.have.css('border-color').which.equals('rgb(255, 166, 166)');
+    browser.expect.element('#objectcontainer > div:nth-child(4)')
+      .to.have.css('background-color').which.equals('rgba(255, 166, 166, 1)');
+    browser.expect.element('#objectcontainer > div:nth-child(4)')
+      .to.have.css('border-color').which.equals('rgb(255, 166, 166)');
+
+    browser.expect.element('#objectcontainer > div:nth-child(5)')
+      .to.have.css('background-color').which.equals('rgba(255, 166, 255, 1)');
+    browser.expect.element('#objectcontainer > div:nth-child(5)')
+      .to.have.css('border-color').which.equals('rgb(255, 166, 255)');
+    browser.expect.element('#objectcontainer > div:nth-child(6)')
+      .to.have.css('background-color').which.equals('rgba(255, 166, 255, 1)');
+    browser.expect.element('#objectcontainer > div:nth-child(6)')
+      .to.have.css('border-color').which.equals('rgb(255, 166, 255)');
+    },
+
+  'check color synchronization of handles and crossbars' : function (browser) {
+    //
+    // handles
+    // '#videoframe > div:nth-child(2)'
+    // '#videoframe > div:nth-child(3)' -7
+    // border-top.bottom.left.right-color
+    //
+    // cross bars
+    // '#videoframe > div:nth-child(2) > div.crossbar' , 4, 6
+    // background-color
+
+    browser.expect.element('#videoframe > div:nth-child(2)')
+      .to.have.css('border-color').which.equals('rgb(255, 0, 255)');
+    browser.expect.element('#videoframe > div:nth-child(3)')
+      .to.have.css('border-color').which.equals('rgb(255, 0, 255)');
+    browser.expect.element('#videoframe > div:nth-child(2) > div.crossbar')
+      .to.have.css('background-color').which.equals('rgba(255, 0, 255, 1)');
+
+
+    browser.expect.element('#videoframe > div:nth-child(4)')
+      .to.have.css('border-color').which.equals('rgb(255, 0, 0)');
+    browser.expect.element('#videoframe > div:nth-child(5)')
+      .to.have.css('border-color').which.equals('rgb(255, 0, 0)');
+    browser.expect.element('#videoframe > div:nth-child(4) > div.crossbar')
+      .to.have.css('background-color').which.equals('rgba(255, 0, 0, 1)');
+
+    browser.expect.element('#videoframe > div:nth-child(6)')
+      .to.have.css('border-color').which.equals('rgb(255, 128, 0)');
+    browser.expect.element('#videoframe > div:nth-child(7)')
+      .to.have.css('border-color').which.equals('rgb(255, 128, 0)');
+    browser.expect.element('#videoframe > div:nth-child(6) > div.crossbar')
+      .to.have.css('background-color').which.equals('rgba(255, 128, 0, 1)');
+    },
+
+
+
   'Test end' : function (browser) {
   	browser
-    .pause(1000)
 	  .end();
   }
 };
