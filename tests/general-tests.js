@@ -12,6 +12,10 @@ module.exports = {
     browser.expect.element('#endbutton').to.be.visible
       .to.have.attribute("aria-disabled").equals("false");
 
+    // check that the save work button is disabled
+    browser.expect.element('#submitbutton').to.be.visible
+      .to.have.attribute("aria-disabled").equals("true")
+
     // check that the intro on the right is visible
     browser.expect.element('#objectcontainer p:nth-child(1)').to.be.visible
       .text.to.equal('Please watch the video attentively.');
@@ -42,6 +46,10 @@ module.exports = {
     // check that there is an end button, and it is enable (aria-disabled = false)
     browser.expect.element('#endbutton').to.be.visible
       .to.have.attribute("aria-disabled").equals("false");
+
+    // check that the save work button has been enabled
+    browser.expect.element('#submitbutton').to.be.visible
+      .to.have.attribute("aria-disabled").equals("false")
 
     // check that there is a warning if the slider isn't moved
     browser.click('#endbutton');
