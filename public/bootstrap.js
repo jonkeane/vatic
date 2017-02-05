@@ -72,9 +72,7 @@ function loadingscreen(job)
     }
 
     ls.append("<div class='loadingscreentip'>You are welcome to work on " +
-        "other HITs while you wait for the download to complete. When the " +
-        "download finishes, we'll play a gentle musical tune to notify " + 
-        "you.</div>");
+        "other HITs while you wait for the download to complete.</div>");
 
     container.html(ls);
 
