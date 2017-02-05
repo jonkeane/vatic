@@ -1,7 +1,7 @@
 #! /usr/bin/bash
 
 # Usage: load-videos.sh -o [directory to place frame images] [video file(s) to load in to vatic]
-# Eg: load-videos.sh -o ./load-video.sh -o /var/videos/frames/test/ /var/videos/1minClips/*
+# Eg: load-videos.sh -o /var/videos/frames/test/ /var/videos/1minClips/*
 #
 # This script will replace all spaces and parens with underscores in filenames (so that ffmpeg has an easier time digesting them), create folders for the frames to sit in, use turkic to extract frames, and then publish each video as a task for fingerspelling annotation
 
