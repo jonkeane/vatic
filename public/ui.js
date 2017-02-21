@@ -43,7 +43,7 @@ function ui_setup(job)
 	actionstring = job.labels[key];
     $("<table>" +
         "<tr>" +
-            "<td><div id='instructionsbutton' class='button'>Instructions</div><div id='instructions'>Annotate the beginning and end of any fingerspelled word in the following video. <br/> Then type the word that was finerspelled into the box to the right of the video.</td>" +
+            "<td><div id='instructionsbutton' class='button'>Instructions</div><div id='instructions'>Annotate the beginning and end of any fingerspelled word in the following video. <br/> Then type the word that was fingerspelled into the box to the right of the video.</td>" +
             "<td><div id='topbar'></div></td>" +
         "</tr>" +
         "<tr>" +
@@ -100,16 +100,15 @@ function ui_setup(job)
         }).appendTo($("#advancedoptions").parent()).click(function() {
                 eventlog("options", "Show advanced options");
                 $(this).remove();
-                $("#advancedoptions").show();
+                $("#advancedoptions").hide();
             });
 
-    $("#advancedoptions").hide();
+    $("#advancedoptions").show();
 
     $("#advancedoptions").append(
     "<input type='checkbox' id='annotateoptionsresize'>" +
     // "<label for='annotateoptionsresize'>Disable Resize?</label> " +
-    "<input type='checkbox' id='annotateoptionshideboxes'>" +
-    "<label for='annotateoptionshideboxes'>Hide Boxes?</label> ");
+    "<input type='checkbox' id='annotateoptionshideboxes'>");
 
     $("#advancedoptions").append(
     "<div id='speedcontrol'>" +
@@ -764,7 +763,7 @@ function ui_showinstructions(job)
     $('<div id="turkic_overlay"></div>').appendTo("#container");
     var h = $('<div id="instructionsdialog"></div>').appendTo("#container");
 
-    $('<div class="button" id="instructionsclosetop" style="position: fixed; right: 140;">Dismiss Instructions</div>').appendTo(h).button({
+    $('<div class="button" id="instructionsclosetop" style="float: right;">Dismiss Instructions</div>').appendTo(h).button({
         icons: {
             primary: "ui-icon-circle-close"
         }
