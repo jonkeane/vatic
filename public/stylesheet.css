@@ -220,10 +220,9 @@ code
 {
     position : fixed;
     top : 50px;
-    left : 50%;
+    left : 10%;
     height : 480px;
-    width : 720px;
-    margin-left : -360px;
+    width : 80%;
     background-color : #fff;
     z-index : 10000000000000;
     padding : 10px;
