@@ -92,16 +92,17 @@ function ui_setup(job)
 
     $("<div id='objectcontainer'></div>").appendTo("#sidebar");
 
-    $("<div class='button' id='openadvancedoptions'>Options</div>")
-        .button({
-            icons: {
-                primary: "ui-icon-wrench"
-            }
-        }).appendTo($("#advancedoptions").parent()).click(function() {
-                eventlog("options", "Show advanced options");
-                $(this).remove();
-                $("#advancedoptions").hide();
-            });
+    // enable / disable the advanced options button to hide the speed options
+    // $("<div class='button' id='openadvancedoptions'>Options</div>")
+    //     .button({
+    //         icons: {
+    //             primary: "ui-icon-wrench"
+    //         }
+    //     }).appendTo($("#advancedoptions").parent()).click(function() {
+    //             eventlog("options", "Show advanced options");
+    //             $(this).remove();
+    //             $("#advancedoptions").show();
+    //         });
 
     $("#advancedoptions").show();
 
