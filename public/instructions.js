@@ -10,7 +10,7 @@ function instructions(job, h)
     h.append("<h2>Crash Course</h2>");
     var str = "<ul>";
     str += "<li>There might be more than one fingerspelled word in the video shown.</li>";
-    str += "<li>Make the beginning and end annotatinos for the fingerspelled word as close to the beginning and ending of the word as possible.</li>";
+    str += "<li>Make the beginning and end annotations for the fingerspelled word as close to the beginning and ending of the word as possible.</li>";
     str += "<li>The start of the fingerspelled word should always be before the end.</li>";
     if (job.perobject > 0)
     {
@@ -64,7 +64,7 @@ function instructions(job, h)
 
     h.append("<h3>Mark both Start and End of the fingerspelled word</h3>")
     h.append("<p>Press the <strong>Play</strong> button. The video will play.</p>");
-    h.append("<p>Pause the video when you reach the frame where the finerspelled word starts. Adjust the player slider to go to the exact frame in which the fingerspelled word starts</p>");
+    h.append("<p>Pause the video when you reach the frame where the fingerspelled word starts. Adjust the player slider to go to the exact frame in which the fingerspelled word starts</p>");
     h.append("<p>Now click the <strong>Start</strong> button to mark the start of the fingerspelled word specified in the right hand column beside the video. </p>");
     h.append("<p>To check if the start label was marked on the correct frame, drag the video player slider to a frame where you think the fingerspelled word started, and verify if the frame number specified on the colorful box on the right and the current frame number shown beside the video player's slider are the same.</p>");
     h.append("<p>The Start and End buttons will be disabled after they have been marked in the video.</p>");
@@ -74,7 +74,7 @@ function instructions(job, h)
     //h.append("<img src='secret.png'>");
     //h.append("<img src='everyobject.jpg'>");
 
-    h.append("<strong>Ensure that Start and End are in order, and at a minimum separation of 10 frames.</strong>");
+    h.append("<p><strong>Ensure that Start and End are in order, and at a minimum separation of 10 frames.</strong></p>");
 
     h.append("<h2>Advanced Features</h2>");
     h.append("<p>We have provided some advanced tools for videos that are especially difficult. Clicking the <strong>Options</strong> button will enable the advanced options.</p>");
