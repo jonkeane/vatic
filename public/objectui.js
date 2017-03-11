@@ -569,7 +569,12 @@ function TrackObject(job, player, container, color, objectui, kind)
       }
 
     this.change_word = function(response, old_label) {
-        console.log("start callback");
+        console.log("Started change_word callback");
+        if (response == "error") {
+          console.log("There was an error updating the word on the server. Check the connection when calling newlabel.");
+          return;
+        }
+
         // update job
         server_request("getjob", [this.job.jobid, this.job.training], function(resp) {
             me.update_ui(resp, response)

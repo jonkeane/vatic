@@ -119,6 +119,46 @@ def newlabel(id, postdata):
     # This allows all letters, numbers, ?, *, [, ], :, #, !, -
     text = re.sub("[^A-z0-9\?\*\[\]\:\#\!\\-]","",postdata['labeltext'])
 
+    if isinstance(postdata['jobid'], (int, long)):
+        # only interact with DB if jobid is an integer
+        # add start/end attributes
+        job = session.query(Job).get(postdata['jobid'])
+        segment = job.segment
+        video = segment.video
+    else:
+        # return error if jobid isn't an integer
+        return "error"
+
+    label = Label(text = text, videoid = video.id)
+    session.add(label)
+
+    attributes = {}
+    for lbl in video.labels:
+        if lbl.id == int(id):
+            # only copy attributes from the old label id
+            attributes[lbl.id] = dict((a.id, a.text) for a in lbl.attributes)
+
+    newAttributes = attributes[int(id)]
+    for attributeText in newAttributes.values():
+        attribute = Attribute(text = attributeText)
+        # add label id so these attribute as associated with the new label
+        session.add(attribute)
+        # this connects the attributes with the labels
+        label.attributes.append(attribute)
+
+    session.commit()
+
+    return {'labelid': label.id,  'oldlabelid': id, 'newattributes':{label.attributes[0].text: label.attributes[0].id, label.attributes[1].text: label.attributes[1].id}}
+
+@handler(post = "json")
+def offensive(id, postdata):
+    # marks the video as offensive.
+
+    # strip any charaters that are not in our annotation set
+    # SQL alchemy should quote special characters, but this is a good defense as well.
+    # This allows all letters, numbers, ?, *, [, ], :, #, !, -
+    text = re.sub("[^A-z0-9\?\*\[\]\:\#\!\\-]","",postdata['labeltext'])
+
     # add start/end attributes
     job = session.query(Job).get(postdata['jobid'])
     segment = job.segment
@@ -144,7 +184,6 @@ def newlabel(id, postdata):
     session.commit()
 
     return {'labelid': label.id,  'oldlabelid': id, 'newattributes':{label.attributes[0].text: label.attributes[0].id, label.attributes[1].text: label.attributes[1].id}}
-
 
 @handler(post = "json")
 def validatejob(id, tracks):
