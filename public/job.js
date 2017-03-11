@@ -43,7 +43,7 @@ function job_import(data)
     job.training = parseInt(data["training"]);
 
     console.log("Job configured!");
-    // oerly verbose logging for vatic-fingerspelling
+    // overly verbose logging for vatic-fingerspelling
     // console.log("  Slug: " + job.slug);
     // console.log("  Start: " + job.start);
     // console.log("  Stop: " + job.stop);
