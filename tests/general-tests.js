@@ -484,7 +484,67 @@ module.exports = {
       .to.have.css('background-color').which.equals('rgba(255, 128, 0, 1)');
     },
 
+    'delete newword start' : function (browser) {
+      browser.expect.element('#objectcontainer .trackobject p').to.be.visible;
+      browser.expect.element('#objectcontainer > div:nth-child(4) > p:nth-child(5)  strong').text.to.equal('Start - Frame:80');
+      browser.expect.element('#objectcontainer .trackobject p').to.be.visible;
+      browser.expect.element('#objectcontainer > div:nth-child(3) > p:nth-child(5) > strong').text.to.equal('End - Frame:92');
 
+      // delete the start track
+      browser.click('#trackobject5delete');
+
+      // the alert has the right text
+      browser.getAlertText(function(result){
+        this.assert.equal(result.value, 'Delete the newword Start annotation?');
+        browser.acceptAlert();
+      });
+
+      browser.expect.element('#objectcontainer > div:nth-child(4) > p:nth-child(5)  strong').text.to.not.equal('Start - Frame:80').before(1000);
+      browser.expect.element('#objectcontainer > div:nth-child(3) > p:nth-child(5) > strong').text.to.equal('End - Frame:92');
+    },
+
+      'make a new newword start' : function (browser) {
+      // move the slider (in the right direction)
+      browser
+        .useCss()
+        .moveToElement('#playerslider > a',  2,  2)
+        .mouseButtonDown(0)
+        .moveToElement('#playerslider',  345,  0) // Move to offset position of 200(x) 0(y)
+        .mouseButtonUp(0);
+
+      // click the start button
+      browser.click('#startbutton');
+      // check that the annotation shows up
+      browser.expect.element('#objectcontainer .trackobject').to.be.visible;
+      browser.expect.element('#objectcontainer .trackobject p').to.be.visible;
+      browser.expect.element('#objectcontainer > div:nth-child(1) > p:nth-child(5) > strong').text.to.equal('Start - Frame:79');
+
+      // check that the word is the correct
+      browser.expect.element('#objectcontainer > div:nth-child(1) > p.trackobjectheader.change9word > strong').text.to.equal('newword').before(1000);
+      // check that the word is the correct
+      browser.expect.element('#objectcontainer > div:nth-child(4) > p.trackobjectheader.change6word > strong').text.to.equal('newword').before(1000);
+
+      // check that the annotation box colors are correct
+      browser.expect.element('#objectcontainer > div:nth-child(4)') //end (old)
+        .to.have.css('background-color').which.equals('rgba(255, 166, 166, 1)');
+      browser.expect.element('#objectcontainer > div:nth-child(4)') //end (old)
+        .to.have.css('border-color').which.equals('rgb(255, 166, 166)');
+      browser.expect.element('#objectcontainer > div:nth-child(1)') // start (new)
+        .to.have.css('background-color').which.equals('rgba(255, 166, 166, 1)');
+      browser.expect.element('#objectcontainer > div:nth-child(1)') // start (new)
+        .to.have.css('border-color').which.equals('rgb(255, 166, 166)');
+
+      // check that the handle colors are correct
+      browser.expect.element('#videoframe > div:nth-child(4)') // end (old)
+        .to.have.css('border-color').which.equals('rgb(255, 0, 0)');
+      browser.expect.element('#videoframe > div:nth-child(7)') // start (new)
+        .to.have.css('border-color').which.equals('rgb(255, 0, 0)');
+      browser.expect.element('#videoframe > div:nth-child(7) > div.crossbar') // crossbar (new)
+        .to.have.css('background-color').which.equals('rgba(255, 0, 0, 1)');
+
+    },
+
+    // Need to test that deleting the end of word1 will allow for re-annotation later on.
 
   'Test end' : function (browser) {
   	browser
