@@ -43,29 +43,30 @@ function job_import(data)
     job.training = parseInt(data["training"]);
 
     console.log("Job configured!");
-    console.log("  Slug: " + job.slug);
-    console.log("  Start: " + job.start);
-    console.log("  Stop: " + job.stop);
-    console.log("  Width: " + job.width);
-    console.log("  Height: " + job.height);
-    console.log("  Skip: " + job.skip);
-    console.log("  Per Object: " + job.perobject);
-    console.log("  Blow Radius: " + job.blowradius);
-    console.log("  Training: " + job.training);
-    console.log("  Job ID: " + job.jobid);
-    console.log("  Labels: ");
-    for (var i in job.labels)
-    {
-        console.log("    " + i + " = " + job.labels[i]);
-    }
-    console.log("  Attributes:");
-    for (var i in job.attributes)
-    {
-        for (var j in job.attributes[i])
-        {
-            console.log("    " + job.labels[i] + " = " + job.attributes[i][j])
-        }
-    }
+    // overly verbose logging for vatic-fingerspelling
+    // console.log("  Slug: " + job.slug);
+    // console.log("  Start: " + job.start);
+    // console.log("  Stop: " + job.stop);
+    // console.log("  Width: " + job.width);
+    // console.log("  Height: " + job.height);
+    // console.log("  Skip: " + job.skip);
+    // console.log("  Per Object: " + job.perobject);
+    // console.log("  Blow Radius: " + job.blowradius);
+    // console.log("  Training: " + job.training);
+    // console.log("  Job ID: " + job.jobid);
+    // console.log("  Labels: ");
+    // for (var i in job.labels)
+    // {
+    //     console.log("    " + i + " = " + job.labels[i]);
+    // }
+    // console.log("  Attributes:");
+    // for (var i in job.attributes)
+    // {
+    //     for (var j in job.attributes[i])
+    //     {
+    //         console.log("    " + job.labels[i] + " = " + job.attributes[i][j])
+    //     }
+    // }
 
     return job;
 }
