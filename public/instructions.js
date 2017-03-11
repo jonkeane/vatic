@@ -12,21 +12,22 @@ function instructions(job, h)
     str += "<li>There might be more than one fingerspelled word in the video shown.</li>";
     str += "<li>Make the beginning and end annotations for the fingerspelled word as close to the beginning and ending of the word as possible.</li>";
     str += "<li>The start of the fingerspelled word should always be before the end.</li>";
-    if (job.perobject > 0)
-    {
-        var amount = Math.floor(job.perobject * 100);
-        str += "<li>We will pay you <strong>" + amount + "&cent; for each object</strong> you annotate.</li>";
-    }
-    if (job.completion > 0)
-    {
-        var amount = Math.floor(job.completion * 100);
-        str += "<li>We will award you a <strong>bonus of " + amount + "&cent; if you annotate every object</strong>.</li>";
-    }
-    if (job.skip > 0)
-    {
-        str += "<li>When the video pauses, adjust your annotations.</li>";
-    }
+    // if (job.perobject > 0)
+    // {
+    //     var amount = Math.floor(job.perobject * 100);
+    //     str += "<li>We will pay you <strong>" + amount + "&cent; for each object</strong> you annotate.</li>";
+    // }
+    // if (job.completion > 0)
+    // {
+    //     var amount = Math.floor(job.completion * 100);
+    //     str += "<li>We will award you a <strong>bonus of " + amount + "&cent; if you annotate every object</strong>.</li>";
+    // }
+    // if (job.skip > 0)
+    // {
+    //     str += "<li>When the video pauses, adjust your annotations.</li>";
+    // }
     str += "<li>We will hand review your work.</li>";
+    str += "<li>Please only annotate fingerspelled words. Plese, don't annotate initialized signs with just one letter handshape like <a href='https://youtu.be/RXFxKLQPDz0'  target='_blank'> LIBRARY</a> or <a href='https://youtu.be/Yuif86dOrEY'  target='_blank'>FAMILY</a>.</li>";
     str += "<li>Sometimes the fingerspelled word might be cut off at the beginning or the end of the video. If it is, please type in just the letters that you can see.</li>";
     str += "<li>It is possible that the video might not have any fingerspelled words. But it is important to check carefully. After viewing the whole video, if there are no fingerspelled words, please press the <strong>Submit HIT</strong> button</li>";
     str += "</ul>";
