@@ -45,6 +45,7 @@ do
   mkdir -p "$output$b"
 done
 
+
 echo "Extracting images for each of the videos."
 # for each of the files, exract the frames
 for file in "${files[@]}"
@@ -53,7 +54,7 @@ do
   turkic extract "$file" "$output$b"
 done
 
-echo "Loading each of the videos to turkic. (Currently using --offline option. This hsould be removed if the hits are to be run on AWS.)"
+echo "Loading each of the videos to turkic. (Currently using --offline option. This should be removed if the hits are to be run on AWS.)"
 # for each of the files, exract the frames
 for file in "${files[@]}"
 do
@@ -61,5 +62,5 @@ do
   turkic load "$b" "$output$b" '' ~Start ~End  --offline
 done
 
-echo "Publishing the videos. (Again, using --offline option. This hsould be removed if the hits are to be run on AWS.)"
+echo "Publishing the videos. (Again, using --offline option. This should be removed if the hits are to be run on AWS.)"
 turkic publish --offline
