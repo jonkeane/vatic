@@ -169,6 +169,11 @@ code
     float : right;
 }
 
+#reportOffensive
+{
+    margin-left : 10px;
+    margin-right : 10px;
+}
 #music
 {
     position : absolute;

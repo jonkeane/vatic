@@ -11,9 +11,11 @@ function ui_build(job)
     ui_setupbuttons(job, player, tracks);
     ui_setupslider(player);
     ui_setupsubmit(job, tracks, objectui);
+    ui_setupreport(job, tracks, objectui);
 
     // disable submit button until an annotation is made (or the end of the video has been reached)
     $("#submitbutton").button("option", "disabled", true);
+    $("#reportOffensive").button("option", "disabled", false);
 
     ui_setupclickskip(job, player, tracks, objectui);
     // ui_setupkeyboardshortcuts(job, player);
@@ -126,6 +128,9 @@ function ui_setup(job)
         "value='90,1' id='speedcontrolfast'>" +
     "<label for='speedcontrolfast'>Fast</label>" +
     "</div>");
+
+    $("#advancedoptions").append(
+    "<div id='reportOffensive' class='button'>Report offensive video</div>");
 
     $("#submitbar").append("<div id='submitbutton' class='button'>Submit HIT</div>");
 
@@ -528,10 +533,29 @@ function ui_setupsubmit(job, tracks, objectui)
         }
     }).click(function() {
         if (ui_disabled) return;
+        if ($("#submitbutton")[0].classList.contains("ui-button-disabled")) return;
         ui_submit(job, tracks, objectui);
     });
 }
 
+
+function ui_setupreport(job, tracks, objectui)
+{
+  var jobid = job.jobid;
+    $("#reportOffensive").button({
+
+    }).click(function() {
+        if (ui_disabled) return;
+        console.log("Reporting the video segment as offensive.");
+        data = JSON.stringify({"jobid": jobid}, null, 2);
+        // label must be in a list or  strings/ ints longer than length 1 will separated
+        server_post("offensive", [jobid], data, function(response){
+          alert(response);
+          ui_submit(job, tracks, objectui);
+          return;
+        });
+    });
+}
 
 function ui_submit(job, tracks, objectui)
 {

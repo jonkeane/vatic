@@ -120,7 +120,7 @@ def newlabel(id, postdata):
     text = re.sub("[^A-z0-9\?\*\[\]\:\#\!\\-]","",postdata['labeltext'])
 
     if isinstance(postdata['jobid'], (int, long)):
-        # only interact with DB if jobid is an integer
+        # only interact with DB if jobid is an integer (to avoid sql-injection)
         # add start/end attributes
         job = session.query(Job).get(postdata['jobid'])
         segment = job.segment
@@ -154,36 +154,22 @@ def newlabel(id, postdata):
 def offensive(id, postdata):
     # marks the video as offensive.
 
-    # strip any charaters that are not in our annotation set
-    # SQL alchemy should quote special characters, but this is a good defense as well.
-    # This allows all letters, numbers, ?, *, [, ], :, #, !, -
-    text = re.sub("[^A-z0-9\?\*\[\]\:\#\!\\-]","",postdata['labeltext'])
+    if isinstance(postdata['jobid'], (int, long)):
+        # only interact with DB if jobid is an integer (to avoid sql-injection)
+        # add start/end attributes
+        job = session.query(Job).get(postdata['jobid'])
+        segment = job.segment
 
-    # add start/end attributes
-    job = session.query(Job).get(postdata['jobid'])
-    segment = job.segment
-    video = segment.video
+        segment.offensive = True
 
-    label = Label(text = text, videoid = video.id)
-    session.add(label)
+        session.commit()
+        msg = "This video has been marked as offensive. Thank you for your feedback. The HIT will be submited with this feedback and you can select a new one to work on."
+    else:
+        # return error if jobid isn't an integer
+        msg = "There was an error in marking this video as offensive"
 
-    attributes = {}
-    for lbl in video.labels:
-        if lbl.id == int(id):
-            # only copy attributes from the old label id
-            attributes[lbl.id] = dict((a.id, a.text) for a in lbl.attributes)
 
-    newAttributes = attributes[int(id)]
-    for attributeText in newAttributes.values():
-        attribute = Attribute(text = attributeText)
-        # add label id so these attribute as associated with the new label
-        session.add(attribute)
-        # this connects the attributes with the labels
-        label.attributes.append(attribute)
-
-    session.commit()
-
-    return {'labelid': label.id,  'oldlabelid': id, 'newattributes':{label.attributes[0].text: label.attributes[0].id, label.attributes[1].text: label.attributes[1].id}}
+    return msg
 
 @handler(post = "json")
 def validatejob(id, tracks):
