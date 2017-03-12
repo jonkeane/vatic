@@ -11,9 +11,11 @@ function ui_build(job)
     ui_setupbuttons(job, player, tracks);
     ui_setupslider(player);
     ui_setupsubmit(job, tracks, objectui);
+    ui_setupreport(job, tracks, objectui);
 
     // disable submit button until an annotation is made (or the end of the video has been reached)
     $("#submitbutton").button("option", "disabled", true);
+    $("#reportOffensive").button("option", "disabled", false);
 
     ui_setupclickskip(job, player, tracks, objectui);
     // ui_setupkeyboardshortcuts(job, player);
@@ -43,7 +45,7 @@ function ui_setup(job)
 	actionstring = job.labels[key];
     $("<table>" +
         "<tr>" +
-            "<td><div id='instructionsbutton' class='button'>Instructions</div><div id='instructions'>Annotate the beginning and end of any fingerspelled word in the following video. <br/> Then type the word that was finerspelled into the box to the right of the video.</td>" +
+            "<td><div id='instructionsbutton' class='button'>Instructions</div><div id='instructions'>Annotate the beginning and end of any fingerspelled word in the following video. <br/> Then type the word that was fingerspelled into the box to the right of the video.</td>" +
             "<td><div id='topbar'></div></td>" +
         "</tr>" +
         "<tr>" +
@@ -92,24 +94,24 @@ function ui_setup(job)
 
     $("<div id='objectcontainer'></div>").appendTo("#sidebar");
 
-    $("<div class='button' id='openadvancedoptions'>Options</div>")
-        .button({
-            icons: {
-                primary: "ui-icon-wrench"
-            }
-        }).appendTo($("#advancedoptions").parent()).click(function() {
-                eventlog("options", "Show advanced options");
-                $(this).remove();
-                $("#advancedoptions").show();
-            });
+    // enable / disable the advanced options button to hide the speed options
+    // $("<div class='button' id='openadvancedoptions'>Options</div>")
+    //     .button({
+    //         icons: {
+    //             primary: "ui-icon-wrench"
+    //         }
+    //     }).appendTo($("#advancedoptions").parent()).click(function() {
+    //             eventlog("options", "Show advanced options");
+    //             $(this).remove();
+    //             $("#advancedoptions").show();
+    //         });
 
-    $("#advancedoptions").hide();
+    $("#advancedoptions").show();
 
     $("#advancedoptions").append(
     "<input type='checkbox' id='annotateoptionsresize'>" +
     // "<label for='annotateoptionsresize'>Disable Resize?</label> " +
-    "<input type='checkbox' id='annotateoptionshideboxes'>" +
-    "<label for='annotateoptionshideboxes'>Hide Boxes?</label> ");
+    "<input type='checkbox' id='annotateoptionshideboxes'>");
 
     $("#advancedoptions").append(
     "<div id='speedcontrol'>" +
@@ -126,6 +128,9 @@ function ui_setup(job)
         "value='90,1' id='speedcontrolfast'>" +
     "<label for='speedcontrolfast'>Fast</label>" +
     "</div>");
+
+    $("#advancedoptions").append(
+    "<div id='reportOffensive' class='button'>Report offensive video</div>");
 
     $("#submitbar").append("<div id='submitbutton' class='button'>Submit HIT</div>");
 
@@ -528,10 +533,29 @@ function ui_setupsubmit(job, tracks, objectui)
         }
     }).click(function() {
         if (ui_disabled) return;
+        if ($("#submitbutton")[0].classList.contains("ui-button-disabled")) return;
         ui_submit(job, tracks, objectui);
     });
 }
 
+
+function ui_setupreport(job, tracks, objectui)
+{
+  var jobid = job.jobid;
+    $("#reportOffensive").button({
+
+    }).click(function() {
+        if (ui_disabled) return;
+        console.log("Reporting the video segment as offensive.");
+        data = JSON.stringify({"jobid": jobid}, null, 2);
+        // label must be in a list or  strings/ ints longer than length 1 will separated
+        server_post("offensive", [jobid], data, function(response){
+          alert(response);
+          ui_submit(job, tracks, objectui);
+          return;
+        });
+    });
+}
 
 function ui_submit(job, tracks, objectui)
 {
@@ -764,7 +788,7 @@ function ui_showinstructions(job)
     $('<div id="turkic_overlay"></div>').appendTo("#container");
     var h = $('<div id="instructionsdialog"></div>').appendTo("#container");
 
-    $('<div class="button" id="instructionsclosetop" style="position: fixed; right: 140;">Dismiss Instructions</div>').appendTo(h).button({
+    $('<div class="button" id="instructionsclosetop" style="float: right;">Dismiss Instructions</div>').appendTo(h).button({
         icons: {
             primary: "ui-icon-circle-close"
         }
@@ -773,6 +797,32 @@ function ui_showinstructions(job)
     instructions(job, h)
 
     ui_disable();
+
+    document.body.addEventListener("click", function(e) {
+      var target = e.target || e.srcElement;
+      var instructions_area = document.getElementById("instructionsdialog");
+      var instructions_button = document.getElementById("instructionsbutton");
+
+      // if the clicked object is in the instructions area or the instructions
+      // button itself ignore the click. Additionally if the instructions are not up
+      // ignore the click. If the instructions are up, and the click is outside of the
+      // instructions, then close the instructions.
+      if ( ( instructions_area != null && target !== instructions_area && !isChildOf(target, instructions_area) ) &&
+           ( instructions_button != null && target !== instructions_button && !isChildOf(target, instructions_button) ) ) {
+             ui_closeinstructions();
+      }
+    }, false);
+
+}
+
+function isChildOf(child, parent) {
+  if (child.parentNode === parent) {
+    return true;
+  } else if (child.parentNode === null) {
+    return false;
+  } else {
+    return isChildOf(child.parentNode, parent);
+  }
 }
 
 function ui_closeinstructions()

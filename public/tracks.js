@@ -263,7 +263,8 @@ function TrackCollection(player, job)
 
     this.onnewobject = [];
 
-    this.current_annotation = null;
+    // this.annotation_obj = null;
+    this.all_annos = new all_annotations();
 
     player.onupdate.push(function() {
         me.update(player.frame);
@@ -1172,9 +1173,9 @@ function Position(xtl, ytl, xbr, ybr, occluded, outside)
 
 
 /*
- * A structure to store the current_annotation
+ * A structure to store the annotation_obj
  */
-function current_annotation(id)
+function annotation_obj(id)
 {
     this.id = id;
     this.has_start = null;
@@ -1183,4 +1184,85 @@ function current_annotation(id)
     this.end_frame;
     this.label = null;
     this.color = null;
+    this.word_container = null;
+}
+
+/*
+ * A structure to store all annotations made in this session
+ */
+function all_annotations()
+{
+    this.annotations = []; // list of annotations in the form of annotation_objects
+    this.annotation_active = null;
+
+    this.add_anno = function(anno_obj)
+    {
+      this.annotations.push({
+        id: anno_obj.id,
+        anno: anno_obj
+    });
+
+      return this
+    }
+
+    this.find_anno_id = function(id) {
+      var output = null;
+        for(var i=0; i<this.annotations.length; i++) {
+            if (this.annotations[i].id == id)
+            output = i;
+        }
+        return output
+    }
+
+    this.find_anno = function(id) {
+        return this.annotations[this.find_anno_id(id)].anno;
+    }
+
+    this.active_anno = function() {
+      var output = null;
+      if (this.annotation_active != null)
+      output = this.annotations[this.find_anno_id(this.annotation_active)].anno;
+
+      return output;
+    }
+
+    this.set_active_anno = function(id) {
+        this.annotation_active = id;
+        return this
+    }
+
+    this.change_anno_id = function(old_id, new_id) {
+        this.find_anno(old_id).id = new_id;
+        this.annotations[this.find_anno_id(old_id)].id = new_id;
+
+        if (this.annotation_active == old_id)
+        {
+          this.annotation_active = new_id;
+        }
+
+        return this
+    }
+
+    this.within_other_anno = function(time) {
+      var output = false;
+        for(var i=0; i<this.annotations.length; i++) {
+            if ( ( this.annotations[i].anno.start_frame != null && this.annotations[i].anno.start_frame < time ) && ( this.annotations[i].anno.end_frame != null && this.annotations[i].anno.end_frame > time ) )
+            {
+              output = true;
+            }
+        }
+        return output;
+    }
+
+    this.contains_other_anno = function(start_time, end_time) {
+      var output = false;
+        for(var i=0; i<this.annotations.length; i++) {
+            if (this.annotations[i].anno.start_frame > start_time && this.annotations[i].anno.end_frame < end_time)
+            {
+              output = true;
+            }
+        }
+        return output;
+    }
+
 }

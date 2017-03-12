@@ -48,6 +48,7 @@ p, li
 {
     font-family : Arial;
     font-size : 16px;
+    margin-top: 0px;
 }
 
 ul
@@ -169,6 +170,11 @@ code
     float : right;
 }
 
+#reportOffensive
+{
+    margin-left : 10px;
+    margin-right : 10px;
+}
 #music
 {
     position : absolute;
@@ -220,10 +226,9 @@ code
 {
     position : fixed;
     top : 50px;
-    left : 50%;
+    left : 10%;
     height : 480px;
-    width : 720px;
-    margin-left : -360px;
+    width : 80%;
     background-color : #fff;
     z-index : 10000000000000;
     padding : 10px;
@@ -250,6 +255,11 @@ code
     /*display : block;*/
     width : 100px;
     /*float : left; */
+}
+
+.wordcontainer
+{
+    margin-bottom: 5px;
 }
 
 .trackobject

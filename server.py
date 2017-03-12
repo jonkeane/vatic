@@ -119,10 +119,15 @@ def newlabel(id, postdata):
     # This allows all letters, numbers, ?, *, [, ], :, #, !, -
     text = re.sub("[^A-z0-9\?\*\[\]\:\#\!\\-]","",postdata['labeltext'])
 
-    # add start/end attributes
-    job = session.query(Job).get(postdata['jobid'])
-    segment = job.segment
-    video = segment.video
+    if isinstance(postdata['jobid'], (int, long)):
+        # only interact with DB if jobid is an integer (to avoid sql-injection)
+        # add start/end attributes
+        job = session.query(Job).get(postdata['jobid'])
+        segment = job.segment
+        video = segment.video
+    else:
+        # return error if jobid isn't an integer
+        return "error"
 
     label = Label(text = text, videoid = video.id)
     session.add(label)
@@ -145,6 +150,26 @@ def newlabel(id, postdata):
 
     return {'labelid': label.id,  'oldlabelid': id, 'newattributes':{label.attributes[0].text: label.attributes[0].id, label.attributes[1].text: label.attributes[1].id}}
 
+@handler(post = "json")
+def offensive(id, postdata):
+    # marks the video as offensive.
+
+    if isinstance(postdata['jobid'], (int, long)):
+        # only interact with DB if jobid is an integer (to avoid sql-injection)
+        # add start/end attributes
+        job = session.query(Job).get(postdata['jobid'])
+        segment = job.segment
+
+        segment.offensive = True
+
+        session.commit()
+        msg = "This video has been marked as offensive. Thank you for your feedback. The HIT will be submited with this feedback and you can select a new one to work on."
+    else:
+        # return error if jobid isn't an integer
+        msg = "There was an error in marking this video as offensive"
+
+
+    return msg
 
 @handler(post = "json")
 def validatejob(id, tracks):

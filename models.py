@@ -78,6 +78,8 @@ class Segment(turkic.database.Base):
     start = Column(Integer)
     stop = Column(Integer)
 
+    offensive = Column(Boolean, default = False)
+
     @property
     def paths(self):
         paths = []
@@ -141,7 +143,7 @@ class Job(turkic.models.HIT):
 
 class Path(turkic.database.Base):
     __tablename__ = "paths"
-    
+
     id = Column(Integer, primary_key = True)
     jobid = Column(Integer, ForeignKey(Job.id))
     job = relationship(Job, backref = backref("paths", cascade="all,delete"))
@@ -167,7 +169,7 @@ class Path(turkic.database.Base):
 
         return result
 
-    @classmethod 
+    @classmethod
     def bindattributes(cls, attributes, boxes):
         attributes = sorted(attributes, key = lambda x: x.frame)
 
@@ -241,7 +243,7 @@ class PerObjectBonus(turkic.models.BonusSchedule):
     __tablename__ = "per_object_bonuses"
     __mapper_args__ = {"polymorphic_identity": "per_object_bonuses"}
 
-    id = Column(Integer, ForeignKey(turkic.models.BonusSchedule.id), 
+    id = Column(Integer, ForeignKey(turkic.models.BonusSchedule.id),
         primary_key = True)
     amount = Column(Float, default = 0.0, nullable = False)
 

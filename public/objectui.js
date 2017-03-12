@@ -53,7 +53,7 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
     {
       // check currentobject, and adjust button status accordingly
       // start
-      if(this.tracks.current_annotation != null && this.tracks.current_annotation.has_start == true){
+      if(this.tracks.all_annos.active_anno() != null && this.tracks.all_annos.active_anno().has_start == true){
         this.button.button("option", "disabled", true);
         this.startenabled = false;
       } else  {
@@ -62,7 +62,7 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
       }
 
       // end
-      if(this.tracks.current_annotation != null && this.tracks.current_annotation.has_end == true){
+      if(this.tracks.all_annos.active_anno() != null && this.tracks.all_annos.active_anno().has_end == true){
         this.endbutton.button("option", "disabled", true);
         this.endenabled = false;
       } else {
@@ -71,7 +71,7 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
       }
 
       // if both ends exist, reset start and stop frames
-      if(this.tracks.current_annotation != null && this.tracks.current_annotation.has_start == true && this.tracks.current_annotation.has_end == true){
+      if(this.tracks.all_annos.active_anno() != null && this.tracks.all_annos.active_anno().has_start == true && this.tracks.all_annos.active_anno().has_end == true){
         this.startframe = job.start;
         this.endframe = job.stop;
         this.button.button("option", "disabled", false);
@@ -82,7 +82,7 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
 
       // if there is no crruent_annotation, reset everything
       // this is likely overkill, and is covered by the tests above.
-      if (this.tracks.current_annotation == null ){
+      if (this.tracks.all_annos.active_anno() == null ){
         this.startframe = job.start;
         this.endframe = job.stop;
         this.button.button("option", "disabled", false);
@@ -96,18 +96,48 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
     {
         if (start == 1 && this.startenabled == false || (start == 2 && this.endenabled == false) )
         {
-            return;
+            return false;
         }
       	if ( start == 1 && player.frame >= this.endframe )
       	{
       	    alert('Start frame must be before the end frame');
-      	    return;
+      	    return false;
       	}
+
       	else if ( start == 2 && player.frame <= this.startframe )
       	{
       	    alert('End frame must be after the start frame');
-      	    return;
+      	    return false;
       	}
+
+        // check other annos in all_annotations and error if there are overlaps
+        if ( this.tracks.all_annos.within_other_anno(player.frame) ) {
+          if ( start == 1 ) {
+            alert('The start frame must not be inside of another fingerspelled word that has already been annotated.');
+            return false;
+          } else if ( start == 2 ) {
+            alert('The end frame must not be inside of another fingerspelled word that has already been annotated.');
+            return false;
+          }
+        }
+
+        // if this is a start annotation and there is already an end annotation made or
+        // if this is an end annotation and there is already a start annotation made
+        // check if this annotation encompases another, if it does warn.
+        if ( start == 1 && this.endenabled == false || (start == 2 && this.startenabled == false)  ) {
+          if ( start == 1 ) {
+            var new_start = player.frame;
+            var new_end = this.tracks.all_annos.active_anno().end_frame;
+          } else if ( start == 2 ){
+            var new_start = this.tracks.all_annos.active_anno().start_frame;
+            var new_end = player.frame;
+
+          }
+          if ( this.tracks.all_annos.contains_other_anno(start_time = new_start, end_time = new_end) ) {
+            alert('The annotation cannot include another annotation. Please only mark annotations that are not overlapping.');
+            return false;
+          }
+        }
 
         tracks.drawingnew(true);
         console.log("Starting new track object");
@@ -116,17 +146,17 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
 
         this.instructions.fadeOut();
 
-        // If the current_annotation has both a start and a stop, start a new annotation
-        if (this.tracks.current_annotation != null && this.tracks.current_annotation.has_start == true &&  this.tracks.current_annotation.has_end == true) {
-          this.tracks.current_annotation = null;
+        // If the annotation_obj has both a start and a stop, start a new annotation
+        if (this.tracks.all_annos.active_anno() != null && this.tracks.all_annos.active_anno().has_start == true &&  this.tracks.all_annos.active_anno().has_end == true) {
+          this.tracks.all_annos.annotation_active = null;
         }
 
-        if(this.tracks.current_annotation == null) {
-          // If there is no current_annotaiton, pick a new color
+        if(this.tracks.all_annos.active_anno() == null) {
+          // If there is no annotation_obj, pick a new color
           this.currentcolor = this.pickcolor();
           this.drawer.color = this.currentcolor[0];
         } else {
-          this.currentcolor = this.tracks.current_annotation.color;
+          this.currentcolor = this.tracks.all_annos.active_anno().color;
           this.drawer.color = this.currentcolor[0];
         }
 
@@ -143,6 +173,7 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
           kind = "end"
         }
 
+        // adds annotation info to the side bar.
         this.currentobject = new TrackObject(this.job, this.player,
                                              this.container,
                                              this.currentcolor, this, kind);
@@ -150,6 +181,8 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
 
         this.tracks.resizable(false);
         this.tracks.draggable(false);
+
+        return true;
     }
 
     this.stopdrawing = function(position, start)
@@ -198,7 +231,7 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
     	}
 
       // check if the current annotation has both a start and a stop, if so write the bar to connect the handles
-      if (this.tracks.current_annotation != null && this.tracks.current_annotation.has_start == true && this.tracks.current_annotation.has_end == true) {
+      if (this.tracks.all_annos.active_anno() != null && this.tracks.all_annos.active_anno().has_start == true && this.tracks.all_annos.active_anno().has_end == true) {
         // find the start and end track to the current track.
         var curr_lbl = track.label;
         var curr_tracks = tracks.tracks.filter(function(trck){
@@ -212,7 +245,7 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
         });
         // if length<1 or >1 error
 
-        this.connect(start_track[0], end_track[0], this.tracks.current_annotation.color[0], 4)
+        this.connect(start_track[0], end_track[0], this.tracks.all_annos.active_anno().color[0], 4)
       }
 
       this.update_button_ui();
@@ -331,10 +364,13 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
         disabled: false
       }).click(function() {
         // start = 1
-        me.startnewobject(1);
-      // calculates the positoin of the handles
-	    xtl = (me.player.frame*$("#playerslider").width())/(me.player.job.stop);
-	    me.stopdrawing(new Position(xtl, me.player.handle.height()+2, xtl+1, me.player.handle.height()+12), 1);
+        var good_anno = me.startnewobject(1);
+        if ( good_anno ) {
+          // calculates the positoin of the handles
+    	    xtl = (me.player.frame*$("#playerslider").width())/(me.player.job.stop);
+    	    me.stopdrawing(new Position(xtl, me.player.handle.height()+2, xtl+1, me.player.handle.height()+12), 1);
+          // move the trackobject handle at this point?
+        }
   	  });
 
     	this.endbutton.button({
@@ -344,9 +380,11 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
     	    disabled: false
     	}).click(function() {
           // end = 2
-    	    me.startnewobject(2);
-    	    xtl = (me.player.frame*$("#playerslider").width())/(me.player.job.stop);
-    	    me.stopdrawing(new Position(xtl, me.player.handle.height()+2, xtl+1, me.player.handle.height()+12), 2);
+    	    var good_anno = me.startnewobject(2);
+          if ( good_anno ) {
+            xtl = (me.player.frame*$("#playerslider").width())/(me.player.job.stop);
+      	    me.stopdrawing(new Position(xtl, me.player.handle.height()+2, xtl+1, me.player.handle.height()+12), 2);
+          }
     	});
 
     	this.drawer.onstopdraw.push(function(position) {
@@ -487,31 +525,32 @@ function TrackObject(job, player, container, color, objectui, kind)
 
     this.remove = function()
     {
-      // add information back to current_annotation
-      // need to change bounds so that start/end cannot be reverse in order.
-      if(this.tracks.current_annotation != null && this.tracks.current_annotation.id != this.label) {
-        // check if there is no current_annotation already
-        this.tracks.current_annotation.id = this.track.label;
-        // this.tracks.current_annotation.color = this.color;
-        // this.tracks.current_annotation.has_start = true;
-        // this.tracks.current_annotation.has_end = true;
+      // add information back to annotation_obj
+      if(this.tracks.all_annos.active_anno() != null && this.tracks.all_annos.active_anno().id != this.label) {
+        // check if there is no annotation_obj already
+        this.tracks.all_annos.annotation_active = this.track.label;
+        // need to update to be *all* information from the annotation that was deleted.
+
+        // this.tracks.annotation_obj.color = this.color;
+        // this.tracks.annotation_obj.has_start = true;
+        // this.tracks.annotation_obj.has_end = true;
       }
-      if(this.tracks.current_annotation != null && this.kind == "start"){
-        this.tracks.current_annotation.has_start = null;
-        this.tracks.current_annotation.start_frame = null;
+      if(this.tracks.all_annos.active_anno() != null && this.kind == "start"){
+        this.tracks.all_annos.active_anno().has_start = null;
+        this.tracks.all_annos.active_anno().start_frame = null;
         this.objectui.startframe = me.job.start;
-        this.objectui.endframe = this.tracks.current_annotation.end_frame;
+        this.objectui.endframe = this.tracks.all_annos.active_anno().end_frame;
       }
-      if(this.tracks.current_annotation != null && this.kind == "end"){
-        this.tracks.current_annotation.has_end = null;
-        this.tracks.current_annotation.end_frame = null;
+      if(this.tracks.all_annos.active_anno() != null && this.kind == "end"){
+        this.tracks.all_annos.active_anno().has_end = null;
+        this.tracks.all_annos.active_anno().end_frame = null;
         this.objectui.endframe = me.job.stop;
-        this.objectui.startframe = this.tracks.current_annotation.start_frame;
+        this.objectui.startframe = this.tracks.all_annos.active_anno().start_frame;
       }
 
-      // check that if both the start and the end annotations have been removed, null out current_annotation
-      if(this.tracks.current_annotation != null && this.tracks.current_annotation.has_start == null && this.tracks.current_annotation.has_end == null){
-        this.tracks.current_annotation = null;
+      // check that if both the start and the end annotations have been removed, null out annotation_obj
+      if(this.tracks.all_annos.active_anno() != null && this.tracks.all_annos.active_anno().has_start == null && this.tracks.all_annos.active_anno().has_end == null){
+        this.tracks.all_annos.annotation_active = null;
       }
 
       this.objectui.update_button_ui(this);
@@ -532,7 +571,12 @@ function TrackObject(job, player, container, color, objectui, kind)
       }
 
     this.change_word = function(response, old_label) {
-        console.log("start callback");
+        console.log("Started change_word callback");
+        if (response == "error") {
+          console.log("There was an error updating the word on the server. Check the connection when calling newlabel.");
+          return;
+        }
+
         // update job
         server_request("getjob", [this.job.jobid, this.job.training], function(resp) {
             me.update_ui(resp, response)
@@ -556,13 +600,18 @@ function TrackObject(job, player, container, color, objectui, kind)
       oldlabelid = response['oldlabelid'];
       newattributes = response['newattributes'];
 
+      // update all_annos with the new id
+      this.tracks.all_annos.change_anno_id(old_id = oldlabelid, new_id = newlabelid);
+
       // null out the id up for anno if both start and end buttons are endenabled
       // a bit of a hack, but it works.
       if (this.objectui.button[0].getAttribute("aria-disabled") == "false" && this.objectui.endbutton[0].getAttribute("aria-disabled") == "false") {
-        // this.tracks.current_annotation = null;
+        // this.tracks.annotation_obj = null;
       } else {
         // change the id up for anno in the objectUI
-        this.tracks.current_annotation.id = newlabelid;
+        // happens when a word is changed with only a single annotation up.
+        // need to additionally update the this.tracks.all_annos.annotation_active, as well as the labels in all_annos
+        this.tracks.all_annos.annotation_active = newlabelid;
       }
 
       // find tracks with the old label
@@ -653,7 +702,7 @@ function TrackObject(job, player, container, color, objectui, kind)
         // do not loop over all labels, but rather start as empty string.
         // unless there's already an annotation up for annotation, then use the empty label.
 
-        if ( this.tracks.current_annotation == null){
+        if ( this.tracks.all_annos.active_anno() == null){
           // There is no annotation currently being annotated, check if this job
           // has the magic label ""
           var magic_label = "";
@@ -673,26 +722,33 @@ function TrackObject(job, player, container, color, objectui, kind)
           } else {
             id_for_anno = magic_label_id;
           }
-          // set current_annotation object
-          this.tracks.current_annotation = new current_annotation(id = id_for_anno);
-          this.tracks.current_annotation.color = this.color;
+          // set annotation_obj object
+          this.tracks.all_annos.add_anno(new annotation_obj(id = id_for_anno));
+          this.tracks.all_annos.set_active_anno(id_for_anno);
+          this.tracks.all_annos.active_anno().color = this.color;
+
+          this.tracks.all_annos.active_anno().word_container = $( "<div class='wordcontainer'></div>" );
+          this.tracks.all_annos.active_anno().word_container.prependTo(this.container)
 
           // enable the submit button
           $("#submitbutton").button("option", "disabled", false);
         }
         else {
           // There is an annotation being annotated, so use that id for new labels
-          id_for_anno = this.tracks.current_annotation.id;
+          id_for_anno = this.tracks.all_annos.active_anno().id;
         }
 
-        // update teh current_annotation markers
+        // Moves the track info to the word container
+        this.handle.appendTo(this.tracks.all_annos.active_anno().word_container)
+
+        // update the annotation_obj markers
         if(kind == "start"){
-          this.tracks.current_annotation.has_start = true;
-          this.tracks.current_annotation.start_frame = this.player.frame;
+          this.tracks.all_annos.active_anno().has_start = true;
+          this.tracks.all_annos.active_anno().start_frame = this.player.frame;
         }
         if(kind == "end"){
-          this.tracks.current_annotation.has_end = true;
-          this.tracks.current_annotation.end_frame = this.player.frame;
+          this.tracks.all_annos.active_anno().has_end = true;
+          this.tracks.all_annos.active_anno().end_frame = this.player.frame;
         }
 
         this.finalize(id_for_anno, start);
@@ -790,12 +846,26 @@ function TrackObject(job, player, container, color, objectui, kind)
           $( strongfield ).replaceWith('<input type="text" id="newWord", value="'+me.job.labels[me.label]+'">');
           textinput = $( headerobj ).find("input")[0];
 
+
+          // catch the keys
+          $(textinput).keyup(function(e){
+              if(e.keyCode == 13)
+              {
+                $(this).trigger("enterKey");
+              }
+              else if (e.keyCode == 27)
+              {
+                $(this).trigger("escKey");
+              }
+          });
+
           // If the enter key is pressed, submit the new word
           $(textinput).bind("enterKey",function(e){
             //search two parents up for a checkmark to click (this is pretty fragile!)
-            // errors if there's only one annotation?
+            // throws an error to the console, but still works
+            // tried troubleshooting but cannot seem to locate the problem, possibly asynchronous execution?
             check = $( this.parentElement.parentElement ).find(".ui-icon-check")[0];
-             $(check).click();
+            $(check).click();
           });
 
           // If the escape key is pressed, submit the new word
@@ -803,18 +873,6 @@ function TrackObject(job, player, container, color, objectui, kind)
             //search two parents up for a checkmark to click (this is pretty fragile!)
             check = $( this.parentElement.parentElement ).find(".ui-icon-close")[0];
              $(check).click();
-          });
-
-          // catch the keys
-          $(textinput).keyup(function(e){
-              if(e.keyCode == 13)
-              {
-                  $(this).trigger("enterKey");
-              }
-              else if (e.keyCode == 27)
-              {
-                $(this).trigger("escKey");
-              }
           });
 
 
