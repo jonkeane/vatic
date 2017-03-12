@@ -797,6 +797,32 @@ function ui_showinstructions(job)
     instructions(job, h)
 
     ui_disable();
+
+    document.body.addEventListener("click", function(e) {
+      var target = e.target || e.srcElement;
+      var instructions_area = document.getElementById("instructionsdialog");
+      var instructions_button = document.getElementById("instructionsbutton");
+
+      // if the clicked object is in the instructions area or the instructions
+      // button itself ignore the click. Additionally if the instructions are not up
+      // ignore the click. If the instructions are up, and the click is outside of the
+      // instructions, then close the instructions.
+      if ( ( instructions_area != null && target !== instructions_area && !isChildOf(target, instructions_area) ) &&
+           ( instructions_button != null && target !== instructions_button && !isChildOf(target, instructions_button) ) ) {
+             ui_closeinstructions();
+      }
+    }, false);
+
+}
+
+function isChildOf(child, parent) {
+  if (child.parentNode === parent) {
+    return true;
+  } else if (child.parentNode === null) {
+    return false;
+  } else {
+    return isChildOf(child.parentNode, parent);
+  }
 }
 
 function ui_closeinstructions()

@@ -1184,6 +1184,7 @@ function annotation_obj(id)
     this.end_frame;
     this.label = null;
     this.color = null;
+    this.word_container = null;
 }
 
 /*

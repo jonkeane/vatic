@@ -173,6 +173,7 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
           kind = "end"
         }
 
+        // adds annotation info to the side bar.
         this.currentobject = new TrackObject(this.job, this.player,
                                              this.container,
                                              this.currentcolor, this, kind);
@@ -368,6 +369,7 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
           // calculates the positoin of the handles
     	    xtl = (me.player.frame*$("#playerslider").width())/(me.player.job.stop);
     	    me.stopdrawing(new Position(xtl, me.player.handle.height()+2, xtl+1, me.player.handle.height()+12), 1);
+          // move the trackobject handle at this point?
         }
   	  });
 
@@ -725,6 +727,9 @@ function TrackObject(job, player, container, color, objectui, kind)
           this.tracks.all_annos.set_active_anno(id_for_anno);
           this.tracks.all_annos.active_anno().color = this.color;
 
+          this.tracks.all_annos.active_anno().word_container = $( "<div id='wordcontainer'></div>" );
+          this.tracks.all_annos.active_anno().word_container.prependTo(this.container)
+
           // enable the submit button
           $("#submitbutton").button("option", "disabled", false);
         }
@@ -732,6 +737,9 @@ function TrackObject(job, player, container, color, objectui, kind)
           // There is an annotation being annotated, so use that id for new labels
           id_for_anno = this.tracks.all_annos.active_anno().id;
         }
+
+        // Moves the track info to the word container
+        this.handle.appendTo(this.tracks.all_annos.active_anno().word_container)
 
         // update the annotation_obj markers
         if(kind == "start"){
