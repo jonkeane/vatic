@@ -48,6 +48,7 @@ p, li
 {
     font-family : Arial;
     font-size : 16px;
+    margin-top: 0px;
 }
 
 ul
@@ -254,6 +255,11 @@ code
     /*display : block;*/
     width : 100px;
     /*float : left; */
+}
+
+.wordcontainer
+{
+    margin-bottom: 5px;
 }
 
 .trackobject
