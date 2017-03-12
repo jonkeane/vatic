@@ -838,12 +838,26 @@ function TrackObject(job, player, container, color, objectui, kind)
           $( strongfield ).replaceWith('<input type="text" id="newWord", value="'+me.job.labels[me.label]+'">');
           textinput = $( headerobj ).find("input")[0];
 
+
+          // catch the keys
+          $(textinput).keyup(function(e){
+              if(e.keyCode == 13)
+              {
+                $(this).trigger("enterKey");
+              }
+              else if (e.keyCode == 27)
+              {
+                $(this).trigger("escKey");
+              }
+          });
+
           // If the enter key is pressed, submit the new word
           $(textinput).bind("enterKey",function(e){
             //search two parents up for a checkmark to click (this is pretty fragile!)
-            // errors
+            // throws an error to the console, but still works
+            // tried troubleshooting but cannot seem to locate the problem, possibly asynchronous execution?
             check = $( this.parentElement.parentElement ).find(".ui-icon-check")[0];
-             $(check).click();
+            $(check).click();
           });
 
           // If the escape key is pressed, submit the new word
@@ -851,18 +865,6 @@ function TrackObject(job, player, container, color, objectui, kind)
             //search two parents up for a checkmark to click (this is pretty fragile!)
             check = $( this.parentElement.parentElement ).find(".ui-icon-close")[0];
              $(check).click();
-          });
-
-          // catch the keys
-          $(textinput).keyup(function(e){
-              if(e.keyCode == 13)
-              {
-                  $(this).trigger("enterKey");
-              }
-              else if (e.keyCode == 27)
-              {
-                $(this).trigger("escKey");
-              }
           });
 
 
