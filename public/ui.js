@@ -804,11 +804,12 @@ function ui_showinstructions(job)
       var instructions_button = document.getElementById("instructionsbutton");
 
       // if the clicked object is in the instructions area or the instructions
-      // button itself ignore the click
+      // button itself ignore the click. Additionally if the instructions are not up
+      // ignore the click. If the instructions are up, and the click is outside of the
+      // instructions, then close the instructions.
       if ( ( instructions_area != null && target !== instructions_area && !isChildOf(target, instructions_area) ) &&
            ( instructions_button != null && target !== instructions_button && !isChildOf(target, instructions_button) ) ) {
              ui_closeinstructions();
-             console.log("You clicked outside the content area!");
       }
     }, false);
 
