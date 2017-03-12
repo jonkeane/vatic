@@ -1,8 +1,9 @@
 module.exports = {
   'basic UI' : function (browser) {
-    browser.url('https://vatic-dev.ttic.edu/?id=1&hitId=offline');
-    // check for the instructionsbutton, allow waiting up to 10 seconds
-    browser.expect.element('#instructionsbutton').to.be.visible.before(10000);
+    browser.url('https://vatic.ttic.edu/?id=49&hitId=offline');       // this must be the greg/s084 video
+    // browser.url('https://vatic-dev.ttic.edu/?id=1&hitId=offline'); // this must be the greg/s084 video
+    // check for the instructionsbutton, allow waiting up to 100 seconds
+    browser.expect.element('#instructionsbutton').to.be.visible.before(100000);
 
     // check that there is a start button, and it is enable (aria-disabled = false)
     browser.expect.element('#startbutton').to.be.visible
