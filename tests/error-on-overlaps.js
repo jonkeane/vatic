@@ -47,7 +47,7 @@ module.exports = {
     // check that the annotation shows up
     browser.expect.element('#objectcontainer .trackobject').to.be.visible;
     browser.expect.element('#objectcontainer .trackobject p').to.be.visible;
-    browser.expect.element('#objectcontainer div p:nth-child(5) strong').text.to.equal('Start - Frame:25');
+    browser.expect.element('#objectcontainer > div:nth-child(1) > div:nth-child(1) > p:nth-child(5) > strong').text.to.equal('Start - Frame:25');
     //browser.expect.element('#videoframe > div.boundingbox.ui-resizable.ui-draggable.ui-draggable-disabled.ui-state-disabled.ui-resizable-disabled.boundingboxlocked.ui-resizable-autohide').to.be.visible;
     // check the color coordinates
 
@@ -85,7 +85,7 @@ module.exports = {
     // check that the annotation shows up
     browser.expect.element('#objectcontainer .trackobject').to.be.visible;
     browser.expect.element('#objectcontainer .trackobject p').to.be.visible;
-    browser.expect.element('#objectcontainer > div:nth-child(1) > p:nth-child(5) > strong').text.to.equal('End - Frame:47');
+    browser.expect.element('#objectcontainer > div:nth-child(1) > div:nth-child(2) > p:nth-child(5) > strong').text.to.equal('End - Frame:47');
     // check that there is an end button, and it is enable (aria-disabled = false)
     // browser.expect.element('#endbutton').to.be.visible
     //   .to.have.attribute("aria-disabled").equals("false");
@@ -95,8 +95,8 @@ module.exports = {
     browser.setValue('#newWord', ['testword', browser.Keys.ENTER]);
 
     // check that the word is the same
-    browser.expect.element('#objectcontainer > div:nth-child(1) > p.trackobjectheader.change1word > strong').text.to.equal('testword').before(1000);
-    browser.expect.element('#objectcontainer > div:nth-child(2) > p.trackobjectheader.change0word > strong').text.to.equal('testword');
+    browser.expect.element('#objectcontainer > div:nth-child(1) > div:nth-child(1) > p.trackobjectheader.change0word > strong').text.to.equal('testword').before(1000);
+    browser.expect.element('#objectcontainer > div:nth-child(1) > div:nth-child(2) > p.trackobjectheader.change1word > strong').text.to.equal('testword');
   },
 
 
@@ -144,7 +144,7 @@ module.exports = {
     // check that the annotation shows up
     browser.expect.element('#objectcontainer .trackobject').to.be.visible;
     browser.expect.element('#objectcontainer .trackobject p').to.be.visible;
-    browser.expect.element('#objectcontainer > div:nth-child(1) > p:nth-child(5) > strong').text.to.equal('Start - Frame:13');
+    browser.expect.element('#objectcontainer > div:nth-child(1) > div:nth-child(1) > p:nth-child(5) > strong').text.to.equal('Start - Frame:13');
 
 
     // move the slider
@@ -177,38 +177,8 @@ module.exports = {
     // the end button will be visible again
     browser.expect.element('#objectcontainer .trackobject').to.be.visible;
     browser.expect.element('#objectcontainer .trackobject p').to.be.visible;
-    browser.expect.element('#objectcontainer > div:nth-child(1) > p:nth-child(5) > strong').text.to.equal('End - Frame:19');
+    browser.expect.element('#objectcontainer > div:nth-child(1) > div:nth-child(2) > p:nth-child(5) > strong').text.to.equal('End - Frame:19');
   },
-
-
-    // // the end button will be visible again
-    // // browser.expect.element("#endbutton").to.have.attribute("aria-disabled").equals("true");
-    // // check that the annotation shows up
-    // browser.expect.element('#objectcontainer .trackobject').to.be.visible;
-    // browser.expect.element('#objectcontainer .trackobject p').to.be.visible;
-    // browser.expect.element('#objectcontainer > div:nth-child(1) > p:nth-child(5) > strong').text.to.equal('End - Frame:92');
-    // // check that there is an end button, and it is disabled (aria-disabled = true)
-    // browser.expect.element('#endbutton').to.be.visible
-    //   .to.have.attribute("aria-disabled").equals("true");
-    // // check that there is an start button, and it is enable (aria-disabled = false)
-    // browser.expect.element('#startbutton').to.be.visible
-    //   .to.have.attribute("aria-disabled").equals("false");
-    //
-    // // enter text: #newWord
-    // browser.expect.element('#newWord').to.be.visible;
-    // browser.setValue('#newWord', ['newword', browser.Keys.ENTER]);
-    // // check that the word is the correct
-    // browser.expect.element('#objectcontainer > div:nth-child(1) > p.trackobjectheader.change3word > strong').text.to.equal('newword').before(1000);
-    //
-    // // move the slider (in the wrong direction)
-    // browser
-    //   .useCss()
-    //   .moveToElement('#playerslider > a',  2,  2)
-    //   .mouseButtonDown(0)
-    //   .moveToElement('#playerslider',  500,  0) // Move to offset position of 200(x) 0(y)
-    //   .mouseButtonUp(0);
-
-
 
   'Test end' : function (browser) {
   	browser
