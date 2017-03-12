@@ -6,7 +6,7 @@ function instructions(job, h)
     // h.append('<iframe width="640" height="360" src="http://www.youtube.com/embed/K8wSD_s8Ucg" frameborder="0" allowfullscreen></iframe>');
     //
     h.append('<p></p>');
-    h.append("<img src='action.jpg' align='right' style='border:2px solid black; border-style: inset'>");
+    h.append("<img src='images/start-stop.png' alt='An image showing the start and stop buttons' align='right' style='border:1px solid black; border-style: inset'>");
     h.append("<h2>Crash Course</h2>");
     var str = "<ul>";
     str += "<li>There might be more than one fingerspelled word in the video shown.</li>";
@@ -38,7 +38,7 @@ function instructions(job, h)
     h.append("<p><strong>Pause</strong> the video when you reach the frame when the specified fingerspelled word begins.</p>");
     h.append("<p>Click the <strong>Start</strong> button to mark the start of the fingerspelled word. </p>");
 
-    h.append("<img src='label.jpg' align='right' style='border:2px solid black; border-style: inset'>");
+    h.append("<img src='images/start-crop.png' alt='An image of the start button having been pressed and is now disabled. Below that a start annotation has appeared in a light purple box.' align='right' style='border:1px solid black; border-style: inset'>");
     h.append("<p>On the right, directly below the Start button, you will find a colorful box. The box shows you the frame number corresponding to the start or end of the fingerspelled word you just annotated.</p>");
 
     if (job.skip > 0)
@@ -50,14 +50,14 @@ function instructions(job, h)
         h.append("<p>Press the <strong>Play</strong> button. The video will begin to play forward. </p>");
     }
 
-    h.append("<img src='boxes.jpg' align='right' style='border:2px solid black; border-style: inset'>");
+    h.append("<img src='images/boxes.png' align='right' alt='An image showing the annotation bar along the bottom of the video.' style='border:1px solid black; border-style: inset'>");
     h.append("<p>Similarly, click the <strong>End</strong> button to mark the end of the fingerspelled word.</p>");
     h.append("<p>After you click <strong>End</strong>, a text box will appear for you to type in what word was fingerspelled. Once you have typed the word in, click the checkmark next to it or press enter.</p>");
     h.append("<p>If you make a mistake typing in the word, don't worry, you can always change it by clicking on the word or the wrench icon.</p>");
     h.append("<p>If you need to change the location of the start or end of the word, just press the trash can icon to delete either, and then use the <strong>Start</strong> or <strong>End</strong> button above to make a new annotation in the correct place.</p>");
     h.append("<p>Boxes will appear below the video to provide information about the temporal location of start and end annotations along the player slider.</p>");
 
-    h.append("<img src='submit.jpg' align='right' style='border:2px solid black; border-style: inset'>");
+    h.append("<img src='images/word-full.png' align='right' alt='An image showing what the annotations along the right look like when a full word is annotated.' style='border:1px solid black; border-style: inset'>");
     h.append("<p>When you are ready to submit your work, rewind the video and watch it through one more time. Do the start and end annotations you specified cover the complete fingerspelled word? After you have checked your work, press the <strong>Submit HIT</strong> button. We will pay you as soon as possible.</p>");
 
     h.append("<h2>How We Accept Your Work</h2>");
@@ -69,11 +69,8 @@ function instructions(job, h)
     h.append("<p>Now click the <strong>Start</strong> button to mark the start of the fingerspelled word specified in the right hand column beside the video. </p>");
     h.append("<p>To check if the start label was marked on the correct frame, drag the video player slider to a frame where you think the fingerspelled word started, and verify if the frame number specified on the colorful box on the right and the current frame number shown beside the video player's slider are the same.</p>");
     h.append("<p>The Start and End buttons will be disabled after they have been marked in the video.</p>");
-    h.append("<img src='delete.jpg' align='right' style='border:2px solid black; border-style: inset'>");
+    h.append("<img src='images/delete.png' alt='An image showing a mouse hovering over the delete button of an annotation.' align='right' style='border:1px solid black; border-style: inset'>");
     h.append("<p>If you want to make changes to an annotation, <strong>delete</strong> the existing one by clicking the delete icon (the trashcan) on the top right corner of the colorful boxes on the right, and create a new annotation in the correct frame.</p>");
-
-    //h.append("<img src='secret.png'>");
-    //h.append("<img src='everyobject.jpg'>");
 
     h.append("<p><strong>Ensure that Start and End are in order, and at a minimum separation of 10 frames.</strong></p>");
 
