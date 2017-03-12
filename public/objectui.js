@@ -727,7 +727,7 @@ function TrackObject(job, player, container, color, objectui, kind)
           this.tracks.all_annos.set_active_anno(id_for_anno);
           this.tracks.all_annos.active_anno().color = this.color;
 
-          this.tracks.all_annos.active_anno().word_container = $( "<div id='wordcontainer'></div>" );
+          this.tracks.all_annos.active_anno().word_container = $( "<div class='wordcontainer'></div>" );
           this.tracks.all_annos.active_anno().word_container.prependTo(this.container)
 
           // enable the submit button
