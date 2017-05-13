@@ -838,6 +838,18 @@ function TrackObject(job, player, container, color, objectui, kind)
         // end init functions for finalize, from here down are functions.
 
         $(".change" + this.id + "word").click(function() {
+          elem_up = this;
+          // Add a check here, if there are other open words, close them. (With a pop-up warning)
+          $("div.ui-icon-close").each(function () {
+            var $this = $(this);
+            console.log("Are there other closes visible?");
+
+            // only act if the delete icon is visibile and not in the same annotation as the one we are currently changing
+            if($this[0].parentElement.parentElement.parentElement != elem_up.parentElement && $this.is(':visible')) {
+              alert('Please only change one label at a time. When you press ok the open edit box will be closed without saving the word in it. Remeber, after you change each word, please press the checkmark next to it to save it before moving on to the next word.');
+              $this.click();
+            }
+          })
 
           var word_id = this.id;
 
