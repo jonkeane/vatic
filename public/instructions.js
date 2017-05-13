@@ -32,6 +32,7 @@ function instructions(job, h)
     str += "<li>Please only annotate fingerspelled words. Plese, don't annotate initialized signs with just one letter handshape like <a href='https://youtu.be/RXFxKLQPDz0'  target='_blank'> LIBRARY</a> or <a href='https://youtu.be/Yuif86dOrEY'  target='_blank'>FAMILY</a>.</li>";
     str += "<li>Sometimes the fingerspelled word might be cut off at the beginning or the end of the video. If it is, please type in just the letters that you can see.</li>";
     str += "<li>If the fingerspelled word is not clear, has a pause, has a mistake, or the signer uses both hands, see the section <strong>What if the fingerspelling is not clear or there are other differences?</strong> below for instructions about how to annotate these.</li>";
+    str += "<li>Sometimes the fingerspelled word might include numbers. If it does inclue numbers, do not annotate that word.</li>";
     str += "<li>If the video includes any offensive or adult content, please press the <strong>Report offensive video</strong> button to report the video as offensive.</li>";
     str += "<li>It is possible that the video might not have any fingerspelled words. But it is important to check carefully. After viewing the whole video, if there are no fingerspelled words, please press the <strong>Submit HIT</strong> button</li>";
     str += "</ul>";
@@ -128,7 +129,7 @@ function instructions(job, h)
     h.append("<p>For example, if the signer fingerspelled O-F-F with both hands, then the annotation is:</p>");
     h.append("<ul><li>2:off</li></ul>");
     h.append("<h3>More than one word</h3>")
-    h.append("<p>Finally, if a fingerspelling sequence includes multiple consecutive words with no intervening signs or the hand going down, label it as a single sequence with one start frame and one end frame.  Separate the words with a space if there is no visible break between them:<p>");
+    h.append("<p>If a fingerspelling sequence includes multiple consecutive words with no intervening signs or the hand going down, label it as a single sequence with one start frame and one end frame.  Separate the words with a space if there is no visible break between them:<p>");
     h.append("<ul><li>[word] [word]</li></ul>");
     h.append("<p>For example, if the signer fingerspelled S-T-A-R-T U-P with no visible pause or break, then the annotation is:</p>");
     h.append("<ul><li>start up</li></ul>");
@@ -137,7 +138,8 @@ function instructions(job, h)
     h.append("<ul><li>[word]![word]</li></ul>");
     h.append("<p>For example, if the signer fingerspelled B-A-R-A-C-K O-B-A-M-A, then the annotation is:</p>");
     h.append("<ul><li>barack!obama</li></ul>");
-
+    h.append("<h3>Do not annotate words that include numbers</h3>")
+    h.append("<p>Finally, if a fingerspelling sequence includes numbers, please do not annotate that word.<p>");
 
     h.append(spacer_div);
     h.append("<h2>How We Accept Your Work</h2>");
