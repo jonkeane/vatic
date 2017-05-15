@@ -20,7 +20,10 @@ function ui_build(job)
     ui_setupclickskip(job, player, tracks, objectui);
     // ui_setupkeyboardshortcuts(job, player);
     ui_setupkeyboardshortcuts_inputsafe(job, player);
-    ui_loadprevious(job, objectui);
+    // commented because loading the already made annotations will fail when training.
+    // this means old annotations will not be displayed, however this is likely to be
+    // fine for our purposes.
+    // ui_loadprevious(job, objectui);
 
     $("#startbutton").click(function() {
         if (!mturk_submitallowed())
@@ -517,8 +520,8 @@ function ui_loadprevious(job, objectui)
         for (var i in data)
         {
             new_object = objectui.injectnewobject(data[i]["label"],
-                                     data[i]["boxes"],
-                                     data[i]["attributes"]);
+                                    data[i]["boxes"],
+                                    data[i]["attributes"]);
             // added so that the new objects are in the objects array of the new UI
             objectui.objects.push(new_object);
         }
@@ -702,9 +705,10 @@ function ui_submit(job, tracks, objectui)
         if (mturk_isoffline())
         {
             window.setTimeout(function() {
-                note.remove();
-                overlay.remove();
-                ui_enable(1);
+                // note.remove();
+                // overlay.remove();
+                // ui_enable(1);
+                redirect();
             }, 1000);
         }
         else

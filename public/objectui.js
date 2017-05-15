@@ -564,7 +564,13 @@ function TrackObject(job, player, container, color, objectui, kind)
     this.add_word = function(new_word)
     {
         console.log("Change word!");
-        data = JSON.stringify({"labeltext" : new_word, "jobid": me.job.jobid}, null, 2);
+        if (me.job.training == 1){
+          // grab the appropriate id for the training job
+          training_job_id = me.job.train_with_id
+          data = JSON.stringify({"labeltext" : new_word, "jobid": training_job_id}, null, 2);
+        } else {
+          data = JSON.stringify({"labeltext" : new_word, "jobid": me.job.jobid}, null, 2);
+        }
         newdata = null;
         // label must be in a list or  strings/ ints longer than length 1 will separated
         server_post("newlabel", [me.label], data, function(response){me.change_word(response)});

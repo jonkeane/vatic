@@ -1,6 +1,10 @@
 from match import match
 import logging
+
 logger = logging.getLogger("vatic.qa")
+hdlr = logging.FileHandler('/var/www/vatic-dev/public/vatic-qa.log')
+logger.addHandler(hdlr)
+logger.setLevel(logging.DEBUG)
 
 class tolerable(object):
     """
@@ -23,6 +27,13 @@ class tolerable(object):
         """
         matches = match(first, second,
                         lambda x, y: self.overlapcost(x, y))
+        logger.debug("here")
+        for mtch in matches:
+            # logger.debug(length(mtch))
+            logger.debug("Anno cost: {0}".format(mtch[2]))
+
+        logger.debug("mistakes: "+format(self.mistakes))
+        logger.debug("mistakes calculated: "+format(sum(x[2] != 0 for x in matches)))
         return sum(x[2] != 0 for x in matches) <= self.mistakes
 
     def overlapcost(self, first, second):
@@ -34,16 +45,20 @@ class tolerable(object):
         secondboxes = second.getboxes(interpolate = True)
 
         horrible = max(len(firstboxes), len(secondboxes)) + 1
-        if first.label != second.label:
+
+        if first.label.text != second.label.text:
             return horrible
         if len(firstboxes) != len(secondboxes):
             return horrible
         cost = 0
+
         for f, s in zip(firstboxes, secondboxes):
             if f.lost != s.lost:
                 cost += 1
             elif f.percentoverlap(s) < self.overlap:
-                cost += 1
+                cost += 0
+        logger.debug("Total cost: {0}".format(cost - float(len(firstboxes)) * self.tolerance))
+
         return max(0, cost - float(len(firstboxes)) * self.tolerance)
 
     def __hash__(self):
@@ -60,7 +75,7 @@ class tolerable(object):
         """
         try:
             return (self.overlap == other.overlap and
-                    self.tolerance == other.tolerance and 
+                    self.tolerance == other.tolerance and
                     self.mistakes == other.mistakes and
                     type(self) is type(other))
         except AttributeError:
