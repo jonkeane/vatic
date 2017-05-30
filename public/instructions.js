@@ -4,39 +4,38 @@ function instructions(job, h)
     var no_spacer_div = "<div style='clear:both;margin:5px'></div>";
     h.append("<h1>Important Instructions</h1>");
     h.append("<p>In this task, we ask you to annotate a video. You are to mark the start and end of all fingerspelled words in the video. Then you will be asked to type in what word was fingerspelled. These instructions will give you tips on how to best use our tool.</p>");
-    // h.append("<p>Please watch the below video (and/or read the below section) for instructions:</p>");
-    // h.append('<iframe width="640" height="360" src="http://www.youtube.com/embed/K8wSD_s8Ucg" frameborder="0" allowfullscreen></iframe>');
-    //
+    h.append("<video preload='none' width='360' height='240' src='Instructions_videos/01%20-%20Introduction/01%20-%20Intro.mov' controls>");
+    h.append("<video preload='none' width='360' height='240' src='Instructions_videos/01%20-%20Introduction/02%20-%20Please watch.mov' controls>");
+
     h.append('<p></p>');
     h.append("<img src='images/start-stop.png' alt='An image showing the start and stop buttons' align='right' style='border:1px solid black; border-style: inset; margin-right: 100px' width=250>");
     h.append("<h2>Crash Course</h2>");
-    var str = "<ul>";
-    str += "<li>There might be more than one fingerspelled word in the video shown.</li>";
-    str += "<li>Make the beginning and end annotations for the fingerspelled word as close to the beginning and ending of the word as possible.</li>";
-    str += "<li>The start of the fingerspelled word should always be before the end.</li>";
-    // if (job.perobject > 0)
-    // {
-    //     var amount = Math.floor(job.perobject * 100);
-    //     str += "<li>We will pay you <strong>" + amount + "&cent; for each object</strong> you annotate.</li>";
-    // }
-    // if (job.completion > 0)
-    // {
-    //     var amount = Math.floor(job.completion * 100);
-    //     str += "<li>We will award you a <strong>bonus of " + amount + "&cent; if you annotate every object</strong>.</li>";
-    // }
-    // if (job.skip > 0)
-    // {
-    //     str += "<li>When the video pauses, adjust your annotations.</li>";
-    // }
-    str += "<li>We will hand review your work.</li>";
-    str += "<li>Please only annotate fingerspelled words. Plese, don't annotate initialized signs with just one letter handshape like <a href='https://youtu.be/RXFxKLQPDz0'  target='_blank'> LIBRARY</a> or <a href='https://youtu.be/Yuif86dOrEY'  target='_blank'>FAMILY</a>.</li>";
-    str += "<li>Sometimes the fingerspelled word might be cut off at the beginning or the end of the video. If it is, please type in just the letters that you can see.</li>";
-    str += "<li>If the fingerspelled word is not clear, has a pause, has a mistake, or the signer uses both hands, see the section <strong>What if the fingerspelling is not clear or there are other differences?</strong> below for instructions about how to annotate these.</li>";
-    str += "<li>Sometimes the fingerspelled word might include numbers. If it does inclue numbers, do not annotate that word.</li>";
-    str += "<li>If the video includes any offensive or adult content, please press the <strong>Report offensive video</strong> button to report the video as offensive.</li>";
-    str += "<li>It is possible that the video might not have any fingerspelled words. But it is important to check carefully. After viewing the whole video, if there are no fingerspelled words, please press the <strong>Submit HIT</strong> button</li>";
-    str += "</ul>";
-    h.append(str);
+    // English
+    h.append("<div class='eng'><ul> \
+    <li>There might be more than one fingerspelled word in the video shown.</li> \
+    <li>Make the beginning and end annotations for the fingerspelled word as close to the beginning and ending of the word as possible.</li> \
+    <li>The start of the fingerspelled word should always be before the end.</li> \
+    <li>We will hand review your work.</li> \
+    <li>Please only annotate fingerspelled words. Plese, don't annotate initialized signs with just one letter handshape like <a href='https://youtu.be/RXFxKLQPDz0'  target='_blank'> LIBRARY</a> or <a href='https://youtu.be/Yuif86dOrEY'  target='_blank'>FAMILY</a>.</li> \
+    <li>Sometimes the fingerspelled word might be cut off at the beginning or the end of the video. If it is, please type in just the letters that you can see.</li> \
+    <li>If the fingerspelled word is not clear, has a pause, has a mistake, or the signer uses both hands, see the section <strong>What if the fingerspelling is not clear or there are other differences?</strong> below for instructions about how to annotate these.</li> \
+    <li>Sometimes the fingerspelled word might include numbers. If it does inclue numbers, do not annotate that word.</li> \
+    <li>If the video includes any offensive or adult content, please press the <strong>Report offensive video</strong> button to report the video as offensive.</li> \
+    <li>It is possible that the video might not have any fingerspelled words. But it is important to check carefully. After viewing the whole video, if there are no fingerspelled words, please press the <strong>Submit HIT</strong> button</li> \
+    </ul></div>");
+    // ASL
+    h.append("<div class='asl'> \
+    <video preload='none' width='360' height='240' src='Instructions_videos/02%20-%20Crash%20course/01%20-%20There%20might%20be%20more.mov' controls/>\
+    <video preload='none' width='360' height='240' src='Instructions_videos/02%20-%20Crash%20course/02%20-%20Make%20the%20beginning.mov' controls/>\
+    <video preload='none' width='360' height='240' src='Instructions_videos/02%20-%20Crash%20course/03%20-%20The%20start%20of.mov' controls/>\
+    <video preload='none' width='360' height='240' src='Instructions_videos/02%20-%20Crash%20course/04%20-%20We%20will%20hand.mov' controls/>\
+    <video preload='none' width='360' height='240' src='Instructions_videos/02%20-%20Crash%20course/05%20-%20Please%20only%20annotate.mov' controls/>\
+    <video preload='none' width='360' height='240' src='Instructions_videos/02%20-%20Crash%20course/06%20-%20Sometimes%20the%20fingerspelled%20cut%20off.mov' controls/>\
+    <video preload='none' width='360' height='240' src='Instructions_videos/02%20-%20Crash%20course/07%20-%20If%20fingerspelled%20word%20is%20not%20%20clear.mov' controls/>\
+    <video preload='none' width='360' height='240' src='Instructions_videos/02%20-%20Crash%20course/08%20-%20Sometimes%20fingerspelled%20word%20incl%20%20nbr.mov' controls/>\
+    <video preload='none' width='360' height='240' src='Instructions_videos/02%20-%20Crash%20course/09%20-%20If%20video%20incl%20any%20offensive.mov' controls/>\
+    <video preload='none' width='360' height='240' src='Instructions_videos/02%20-%20Crash%20course/10%20-%20It%20is%20possible%20video%20might%20not%20have%20%20any.mov' controls/>\
+    </div>");
 
     h.append(spacer_div);
     h.append("<h2>Getting Started</h2>");

@@ -791,14 +791,46 @@ function ui_showinstructions(job)
 
     $('<div id="turkic_overlay"></div>').appendTo("#container");
     var h = $('<div id="instructionsdialog"></div>').appendTo("#container");
+    var inst_controls = $('<div id="instructionscontrols"></div>').appendTo(h);
 
-    $('<div class="button" id="instructionsclosetop" style="float: right;">Dismiss Instructions</div>').appendTo(h).button({
+    $('<div class="button" id="instructionsclosetop" style="float: right;">Dismiss Instructions</div>').appendTo(inst_controls).button({
         icons: {
             primary: "ui-icon-circle-close"
         }
     }).click(ui_closeinstructions);
 
+    $("<div id='languagecontrol'> \
+    <label for='switchASL'>ASL</label> \
+    <input type='checkbox' id='switchASL' checked = true/> \
+    <label for='switchEnglish'>English</label> \
+    <input type='checkbox' id='switchEnglish' /> \
+    </div>").appendTo(inst_controls);
+
     instructions(job, h)
+
+    // setup button set, and functions for toggling
+    $("#languagecontrol").buttonset();
+
+    // language controls setup
+    // By default disable English and click on asl
+    $(".eng").toggle();
+
+    $("#switchEnglish").click(function() {
+        $(".eng").toggle();
+        // Check if both english and asl are disabled
+        if (document.getElementById('switchASL').checked == false & document.getElementById('switchEnglish').checked == false ) {
+          document.getElementById('switchASL').click();
+        }
+    });
+
+    $("#switchASL").click(function() {
+        $(".asl").toggle();
+
+        // Check if both english and asl are disabled
+        if (document.getElementById('switchASL').checked == false & document.getElementById('switchEnglish').checked == false ) {
+          document.getElementById('switchEnglish').click();
+        }
+    });
 
     ui_disable();
 
@@ -816,7 +848,6 @@ function ui_showinstructions(job)
              ui_closeinstructions();
       }
     }, false);
-
 }
 
 function isChildOf(child, parent) {

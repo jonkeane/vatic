@@ -236,10 +236,27 @@ code
     overflow : auto;
 }
 
+#instructionscontrols
+{
+    position : fixed;
+    right : 10%;
+}
+
 #instructionsclosetop
 {
     float : right;
     font-weight : bold;
+}
+
+#languagecontrol
+{
+  float: right;
+  font-weight : bold;
+}
+
+#instructionsdialog video
+{
+  margin-right : 20px;
 }
 
 .keyboardshortcuts
