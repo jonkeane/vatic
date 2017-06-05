@@ -95,25 +95,22 @@ function instructions(job, h)
     h.append(spacer_div);
     h.append("<img src='images/change.png' alt='An image showing a mouse hovering over the change button (wrench) of an annotation.' align='right' style='border:1px solid black; border-style: inset; clear: both' width=350>");
     h.append("<p class='eng'>If you want to make changes to the word itself, click the wrench icon or click on the word itself.</p>");
-    h.append("<p class='asl'>No video yet.</p>")
+    h.append("<video class='asl'preload='none' width='360' height='240' src='Instructions_videos/04%20-%20Making%20Changes%20to%20words/02%20-%20If%20you%20want%20to%20make%20changes,%20start%20%20over.mov' poster='Instructions_videos/04%20-%20Making%20Changes%20to%20words/02%20-%20If%20you%20want%20to%20make%20changes,%20start%20%20over.png' controls />")
     h.append(no_spacer_div);
     h.append("<img src='images/change-text-box.png' alt='An image showing a textbox appear for changing a word' align='right' style='border:1px solid black; border-style: inset; clear: both; margin-right: 100px' width=250>");
     h.append("<p class='eng'>This will bring up a new text box. Please enter the new word here.</p>");
-    h.append("<p class='asl'>No video yet.</p>")
     h.append(no_spacer_div);
     h.append("<img src='images/new-word.png' alt='An image showing a mouse hovering over the checkmark of an annotation to submit the new word.' align='right' style='border:1px solid black; border-style: inset; clear: both' width=350>");
     h.append("<p class='eng'>Press the checkmark when you are done.</p>");
-    h.append("<p class='asl'>No video yet.</p>")
     h.append(no_spacer_div);
     h.append("<img src='images/full-word-anno.png' align='right' alt='An image showing the start and end of a word with the same label: new' style='border:1px solid black; border-style: inset; clear:both; margin-right: 100px' width=250>");
     h.append("<p class='eng'>This process will update both the start and the end for that word, but please make sure that both thw start and the end annotation for that word match. If they don't match, please delete both start and end annotations, and start over.</p>");
-    h.append("<p class='asl'>No video yet.</p>")
 
     h.append(spacer_div);
     // h.append("<p>The Start and End buttons will be disabled after they have been marked in the video.</p>");
     h.append("<img src='images/delete.png' alt='An image showing a mouse hovering over the delete button of an annotation.' align='right' style='border:1px solid black; border-style: inset' width=350>");
     h.append("<p class='eng'>If you want to make changes to the time of a start or stop annotation, <strong>delete</strong> the existing one by clicking the delete icon (the trashcan) on the top right corner of the colorful boxes on the right, and create a new annotation at the correct time. You will not need to re-enter the word again, but make sure that both the start and the end annotations for that word match. If they don't match, please delete both start and end annotations, and start over.</p>");
-    h.append("<p class='asl'>No video yet.</p>")
+    h.append("<video class='asl'preload='none' width='360' height='240' src='Instructions_videos/04%20-%20Making%20Changes%20to%20words/03%20-%20If%20you%20want%20to%20make%20changes%20to%20the%20%20time.mov' poster='Instructions_videos/04%20-%20Making%20Changes%20to%20words/03%20-%20If%20you%20want%20to%20make%20changes%20to%20the%20%20time.png' controls />")
 
 
     h.append(spacer_div);
