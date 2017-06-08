@@ -21,6 +21,6 @@ while [ $START -lt $DURATION ]; do
     fi
     echo $START "/" $INTERV
     NF=$FILE_NAME"_"`expr $START / 50`$SUFFIX
-    ffmpeg -i $INPUT -vcodec copy -acodec copy -ss $START -t $INTERV $NF
+    ffmpeg -i $INPUT -vcodec h264 -crf 18 -an -ss $START -t $INTERV $NF
     START=`expr $START + 50`
 done
