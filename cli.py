@@ -94,7 +94,7 @@ class load(LoadCommand):
         return "Mark the 'Start' and 'End' of fingerspelling in a video. Also type the letters that are fingerspelled."
 
     def cost(self, args):
-        return 0.01
+        return 0.50
 
     def duration(self, args):
         return 1800
