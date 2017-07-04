@@ -6,6 +6,21 @@ hdlr = logging.FileHandler('/var/www/vatic-dev/public/vatic-qa.log')
 logger.addHandler(hdlr)
 logger.setLevel(logging.DEBUG)
 
+def levenshteinDistance(s1, s2):
+    if len(s1) > len(s2):
+        s1, s2 = s2, s1
+
+    distances = range(len(s1) + 1)
+    for i2, c2 in enumerate(s2):
+        distances_ = [i2+1]
+        for i1, c1 in enumerate(s1):
+            if c1 == c2:
+                distances_.append(distances[i1])
+            else:
+                distances_.append(1 + min((distances[i1], distances[i1 + 1], distances_[-1])))
+        distances = distances_
+    return distances[-1]
+
 class tolerable(object):
     """
     Tests if two paths agree by tolerable guidelines.
@@ -27,14 +42,17 @@ class tolerable(object):
         """
         matches = match(first, second,
                         lambda x, y: self.overlapcost(x, y))
-        logger.debug("here")
-        for mtch in matches:
-            # logger.debug(length(mtch))
-            logger.debug("Anno cost: {0}".format(mtch[2]))
-
-        logger.debug("mistakes: "+format(self.mistakes))
-        logger.debug("mistakes calculated: "+format(sum(x[2] != 0 for x in matches)))
-        return sum(x[2] != 0 for x in matches) <= self.mistakes
+            
+        logger.debug("matches!")
+        logger.debug(matches)
+        
+        if sum(x[2] != 0 for x in matches) <= self.mistakes:
+            out = "all good"
+        elif sum(x[2] for x in matches) > 100 and sum(x[2] for x in matches) < 10000 :
+            out = "spelling error"
+        else:
+            out = "wrong"
+        return out
 
     def overlapcost(self, first, second):
         """
@@ -47,10 +65,14 @@ class tolerable(object):
         horrible = max(len(firstboxes), len(secondboxes)) + 1
 
         if first.label.text != second.label.text:
-            return horrible
+            return levenshteinDistance(first.label.text, second.label.text)*100
         if len(firstboxes) != len(secondboxes):
-            return horrible
+            return 10000
         cost = 0
+        logger.debug("Past the ifs")
+
+        logger.debug(first.label.text)
+        logger.debug(first.label.text)
 
         for f, s in zip(firstboxes, secondboxes):
             if f.lost != s.lost:

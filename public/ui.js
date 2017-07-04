@@ -1,7 +1,10 @@
 var ui_disabled = 0;
+// maximum number of tries when validating
+max_tries = 2;
 
 function ui_build(job)
 {
+    console.log(max_tries);
     var screen = ui_setup(job);
     var videoframe = $("#videoframe");
     var player = new VideoPlayer(videoframe, job);
@@ -669,17 +672,35 @@ function ui_submit(job, tracks, objectui)
     {
         server_post("validatejob", [job.jobid], tracks.serialize(),
             function(valid) {
-                if (valid)
+                if (valid == "all good")
                 {
                     console.log("Validation was successful");
                     callback();
                 }
-                else
+                else if (max_tries < 1) {
+                    note.remove();
+                    overlay.remove();
+                    ui_enable(1);
+                    console.log("Validation failed and tries are up!");
+                    total_failedvalidation();
+                }
+                else if (valid == "spelling error")
+                {
+                    console.log("Spelling error");
+                    note.remove();
+                    overlay.remove();
+                    ui_enable(1);
+                    console.log(max_tries);
+                    max_tries = max_tries-1;
+                    ui_spelling_error();                }
+                else 
                 {
                     note.remove();
                     overlay.remove();
                     ui_enable(1);
                     console.log("Validation failed!");
+                    console.log(max_tries);
+                    max_tries = max_tries-1;
                     ui_submit_failedvalidation();
                 }
             });
@@ -746,6 +767,87 @@ function ui_submit(job, tracks, objectui)
             });
         });
     }
+}
+
+function total_failedvalidation()
+{
+    $('<div id="turkic_overlay"></div>').appendTo("#container");
+    var h = $('<div id="failedverificationdialog"></div>')
+    h.appendTo("#container");
+
+    h.append("<h1>Low Quality Work</h1>");
+    h.append("<p>Sorry, but your work is low quality. We cannot allow you to continue.</p>");
+}
+
+function ui_spelling_error()
+{
+    $('<div id="turkic_overlay"></div>').appendTo("#container");
+    var h = $('<div id="failedverificationdialog"></div>')
+    h.appendTo("#container");
+
+    h.append("<h1>Low Quality Work</h1>");
+    h.append("<p>Sorry, but your work is low quality. We would normally <strong>reject this assignment</strong>, but we are giving you the opportunity to correct your mistakes since you are a new user.</p>");
+
+    h.append("<p>Please review the instructions, double check your annotations, and submit again.</p>");
+    h.append("<p>Remember annotate only the letters that are fingerspelled. If there is an obvious mistake or something is unclear follow these instructions:</p>");
+
+    h.append("<h2>What if the fingerspelling is not clear or there are other differences?</h2>");
+    h.append("<h3>Spelling mistakes</h3>")
+    h.append("<p class='eng'>If the letters spelled differ from the word intended, please record both in the annotation with an asterisk separating them:</p>");
+    h.append("<ul class='eng'><li>[letters spelled]*[letters intended]</li></ul>");
+    h.append("<video class='asl'preload='none' width='360' height='240' src='Instructions_videos/05%20-%20What%20if%20the%20fingerspelling%20is%20not%20clear%20or%20there%20are%20other%20differences%3F/01%20-%20Spellling%20mistakes.mov' poster='Instructions_videos/05%20-%20What%20if%20the%20fingerspelling%20is%20not%20clear%20or%20there%20are%20other%20differences%3F/01%20-%20Spellling%20mistakes.png' controls />");
+    h.append("<p>For example, if the signer spelled B-E-L-E-V-E but intended 'believe', your annotation should be:</p>");
+    h.append("<ul><li>beleve*believe</li></ul>");
+
+    h.append("<h3>Unsure about the letters</h3>")
+    h.append("<p class='eng'>If you are unsure of which letters were spelled, you may indicate this with a question mark at the end:</p>");
+    h.append("<ul class='eng'><li>[best guess at letters]?</li></ul>");
+    h.append("<video class='asl'preload='none' width='360' height='240' src='Instructions_videos/05%20-%20What%20if%20the%20fingerspelling%20is%20not%20clear%20or%20there%20are%20other%20differences%3F/02%20-%20Unsure%20about%20the%20letters.mov' poster='Instructions_videos/05%20-%20What%20if%20the%20fingerspelling%20is%20not%20clear%20or%20there%20are%20other%20differences%3F/02%20-%20Unsure%20about%20the%20letters.png' controls />");
+    h.append("<p>For example, if the word could be 'glum' or 'gum', then the annotation is:</p>");
+    h.append("<ul><li>glum?</li><li>gum?</li></ul>");
+
+    h.append("<h3>A letter is not fully clear</h3>")
+    h.append("<p class='eng'>If a letter is not clearly articulated, but there was an attempt to spell it, include that letter in [letters spelled].  However, if the signer has blatantly left out a letter or misspelled the word, then record the mistake in [letters spelled] and the correct spelling in [letters meant].</p>");
+    h.append("<video class='asl'preload='none' width='360' height='240' src='Instructions_videos/05%20-%20What%20if%20the%20fingerspelling%20is%20not%20clear%20or%20there%20are%20other%20differences%3F/03%20-%20A%20letter%20is%20not%20fully%20clear.mov' poster='Instructions_videos/05%20-%20What%20if%20the%20fingerspelling%20is%20not%20clear%20or%20there%20are%20other%20differences%3F/03%20-%20A%20letter%20is%20not%20fully%20clear.png' controls />");
+    h.append("<p>For example, if the signer intended to spell 'veteran' and the 'r' is not fully articulated but you can still tell that they meant 'r',' then the annotation is:</p>")
+    h.append("<ul><li>veteran</li></ul>");
+    h.append("<p>but if the signer mixed up two letters, the annotation is:</p>");
+    h.append("<ul><li>vetearn*veteran</li></ul>");
+
+    h.append("<h3>The signer uses both hands</h3>")
+    h.append("<p class='eng'>If both hands fingerspell the same word, denote this as:</p>");
+    h.append("<ul class='eng'><li>2:[word]</li></ul>");
+    h.append("<video class='asl'preload='none' width='360' height='240' src='Instructions_videos/05%20-%20What%20if%20the%20fingerspelling%20is%20not%20clear%20or%20there%20are%20other%20differences%3F/04%20-%20The%20signer%20uses%20both%20hands.mov' poster='Instructions_videos/05%20-%20What%20if%20the%20fingerspelling%20is%20not%20clear%20or%20there%20are%20other%20differences%3F/04%20-%20The%20signer%20uses%20both%20hands.png' controls />");
+    h.append("<p>For example, if the signer fingerspelled O-F-F with both hands, then the annotation is:</p>");
+    h.append("<ul><li>2:off</li></ul>");
+
+    h.append("<h3>More than one word</h3>")
+    h.append("<p class='eng'>If a fingerspelling sequence includes multiple consecutive words with no intervening signs or the hand going down, label it as a single sequence with one start frame and one end frame.  Separate the words with a space if there is no visible break between them:<p>");
+    h.append("<ul class='eng'><li>[word] [word]</li></ul>");
+    h.append("<video class='asl'preload='none' width='360' height='240' src='Instructions_videos/05%20-%20What%20if%20the%20fingerspelling%20is%20not%20clear%20or%20there%20are%20other%20differences%3F/05%20-%20More%20than%20one%20word.mov' poster='Instructions_videos/05%20-%20What%20if%20the%20fingerspelling%20is%20not%20clear%20or%20there%20are%20other%20differences%3F/05%20-%20More%20than%20one%20word.png' controls />");
+
+    h.append("<p>For example, if the signer fingerspelled S-T-A-R-T U-P with no visible pause or break, then the annotation is:</p>");
+    h.append("<ul><li>start up</li></ul>");
+
+    h.append("<p class='eng'>If there is a visible break between the words, use an exclamation mark to separate them (e.g. a slight pause, shift of the hand, etc).</p>")
+    h.append("<ul class='eng'><li>[word]![word]</li></ul>");
+    h.append("<p>For example, if the signer fingerspelled B-A-R-A-C-K O-B-A-M-A, then the annotation is:</p>");
+    h.append("<ul><li>barack!obama</li></ul>");
+
+    h.append("<h3>Do not annotate words that include numbers</h3>")
+    h.append("<p class='eng'>Finally, if a fingerspelling sequence includes numbers, please do not annotate that word.<p>");
+    h.append("<video class='asl'preload='none' width='360' height='240' src='Instructions_videos/05%20-%20What%20if%20the%20fingerspelling%20is%20not%20clear%20or%20there%20are%20other%20differences%3F/06%20-%20Do%20not%20annotate%20words%20that%20incl%20%20nbrs.mov'  poster='Instructions_videos/05%20-%20What%20if%20the%20fingerspelling%20is%20not%20clear%20or%20there%20are%20other%20differences%3F/06%20-%20Do%20not%20annotate%20words%20that%20incl%20%20nbrs.png' controls />");
+
+    h.append("<p>When you are ready to continue, press the button below.</p>");
+
+    $('<div class="button" id="failedverificationbutton">Try Again</div>').appendTo(h).button({
+        icons: {
+            primary: "ui-icon-refresh"
+        }
+    }).click(function() {
+        $("#turkic_overlay").remove();
+        h.remove();
+    }).wrap("<div style='text-align:center;padding:5x 0;' />");    
 }
 
 function ui_submit_failedvalidation()

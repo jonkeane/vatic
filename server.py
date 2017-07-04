@@ -10,9 +10,6 @@ import re
 
 import logging
 logger = logging.getLogger("vatic.server")
-hdlr = logging.FileHandler('/var/www/vatic-dev/public/vatic.log')
-logger.addHandler(hdlr)
-logger.setLevel(logging.DEBUG)
 
 @handler()
 def getjob(id, verified):
@@ -244,10 +241,8 @@ def respawnjob(id):
     session.commit()
 
     # if on mturk:
-    # replacement.publish() # fails here if not on mturk
-    # if not on mturk:
-    replacement.hitid = 'foobar'
-    replacement.published = True
+    replacement.publish() # fails here if not on mturk
+
 
     session.add(replacement)
     session.commit()
