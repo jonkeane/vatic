@@ -1,7 +1,10 @@
 var ui_disabled = 0;
+// maximum number of tries when validating
+max_tries = 2;
 
 function ui_build(job)
 {
+    console.log(max_tries);
     var screen = ui_setup(job);
     var videoframe = $("#videoframe");
     var player = new VideoPlayer(videoframe, job);
@@ -20,7 +23,10 @@ function ui_build(job)
     ui_setupclickskip(job, player, tracks, objectui);
     // ui_setupkeyboardshortcuts(job, player);
     ui_setupkeyboardshortcuts_inputsafe(job, player);
-    ui_loadprevious(job, objectui);
+    // commented because loading the already made annotations will fail when training.
+    // this means old annotations will not be displayed, however this is likely to be
+    // fine for our purposes.
+    // ui_loadprevious(job, objectui);
 
     $("#startbutton").click(function() {
         if (!mturk_submitallowed())
@@ -517,8 +523,8 @@ function ui_loadprevious(job, objectui)
         for (var i in data)
         {
             new_object = objectui.injectnewobject(data[i]["label"],
-                                     data[i]["boxes"],
-                                     data[i]["attributes"]);
+                                    data[i]["boxes"],
+                                    data[i]["attributes"]);
             // added so that the new objects are in the objects array of the new UI
             objectui.objects.push(new_object);
         }
@@ -664,19 +670,43 @@ function ui_submit(job, tracks, objectui)
 
     function validatejob(callback)
     {
+        // error types as defined in qa.py, these will trigger slightly different
+        // warnings on the correction screen.
+        var error_types = ["missing gap", "missing two hands",
+        "missing star signer spelling error", "annotator spelling error",
+        "spelling error", "missing annotation/misalignment"]
         server_post("validatejob", [job.jobid], tracks.serialize(),
             function(valid) {
-                if (valid)
+                console.log(valid);
+                if (valid == "all good")
                 {
                     console.log("Validation was successful");
                     callback();
                 }
+                else if (max_tries < 1) {
+                    note.remove();
+                    overlay.remove();
+                    ui_enable(1);
+                    console.log("Validation failed and tries are up!");
+                    total_failedvalidation();
+                }
+                else if (error_types.includes(valid))
+                {
+                    console.log(valid);
+                    note.remove();
+                    overlay.remove();
+                    ui_enable(1);
+                    console.log(max_tries);
+                    max_tries = max_tries-1;
+                    ui_annotator_error(valid);                }
                 else
                 {
                     note.remove();
                     overlay.remove();
                     ui_enable(1);
                     console.log("Validation failed!");
+                    console.log(max_tries);
+                    max_tries = max_tries-1;
                     ui_submit_failedvalidation();
                 }
             });
@@ -702,9 +732,10 @@ function ui_submit(job, tracks, objectui)
         if (mturk_isoffline())
         {
             window.setTimeout(function() {
-                note.remove();
-                overlay.remove();
-                ui_enable(1);
+                // note.remove();
+                // overlay.remove();
+                // ui_enable(1);
+                redirect();
             }, 1000);
         }
         else
@@ -742,6 +773,95 @@ function ui_submit(job, tracks, objectui)
             });
         });
     }
+}
+
+function total_failedvalidation()
+{
+    $('<div id="turkic_overlay"></div>').appendTo("#container");
+    var h = $('<div id="failedverificationdialog"></div>')
+    h.appendTo("#container");
+
+    h.append("<h1>Low Quality Work</h1>");
+    h.append("<p>Sorry, but your work is low quality. We cannot allow you to continue.</p>");
+}
+
+function ui_annotator_error(error_code)
+{
+    $('<div id="turkic_overlay"></div>').appendTo("#container");
+    var h = $('<div id="failedverificationdialog"></div>')
+    h.appendTo("#container");
+
+    h.append("<h1>Low Quality Work</h1>");
+    h.append("<p>Sorry, but your work is low quality. We would normally <strong>reject this assignment</strong>, but we are giving you the opportunity to correct your mistakes since you are a new user.</p>");
+
+    h.append("<p>Please review the instructions again, double check your annotations, and submit again. Remember annotate only the letters that are fingerspelled.</p>");
+
+    if (error_code == "missing gap")
+    {
+          h.append("<p>It looks like there was an error with annotating when the signer fingerspelled more than one word.</p>");
+          h.append("<h3>More than one word</h3>")
+          h.append("<p class='eng'>If a fingerspelling sequence includes multiple consecutive words with no intervening signs or the hand going down, label it as a single sequence with one start frame and one end frame.  Separate the words with a space if there is no visible break between them:<p>");
+          h.append("<ul class='eng'><li>[word] [word]</li></ul>");
+          h.append("<video class='asl'preload='none' width='360' height='240' src='Instructions_videos/05%20-%20What%20if%20the%20fingerspelling%20is%20not%20clear%20or%20there%20are%20other%20differences%3F/05%20-%20More%20than%20one%20word.mov' poster='Instructions_videos/05%20-%20What%20if%20the%20fingerspelling%20is%20not%20clear%20or%20there%20are%20other%20differences%3F/05%20-%20More%20than%20one%20word.png' controls />");
+
+          h.append("<p>For example, if the signer fingerspelled S-T-A-R-T U-P with no visible pause or break, then the annotation is:</p>");
+          h.append("<ul><li>start up</li></ul>");
+
+          h.append("<p class='eng'>If there is a visible break between the words, use an exclamation mark to separate them (e.g. a slight pause, shift of the hand, etc).</p>")
+          h.append("<ul class='eng'><li>[word]![word]</li></ul>");
+          h.append("<p>For example, if the signer fingerspelled B-A-R-A-C-K O-B-A-M-A, then the annotation is:</p>");
+          h.append("<ul><li>barack!obama</li></ul>");
+    }
+    else if (error_code == "missing two hands")
+    {
+      h.append("<p>It looks like there was an error with how many hands the signer was using.</p>");
+      h.append("<h3>The signer uses both hands</h3>")
+      h.append("<p class='eng'>If both hands fingerspell the same word, denote this as:</p>");
+      h.append("<ul class='eng'><li>2:[word]</li></ul>");
+      h.append("<video class='asl'preload='none' width='360' height='240' src='Instructions_videos/05%20-%20What%20if%20the%20fingerspelling%20is%20not%20clear%20or%20there%20are%20other%20differences%3F/04%20-%20The%20signer%20uses%20both%20hands.mov' poster='Instructions_videos/05%20-%20What%20if%20the%20fingerspelling%20is%20not%20clear%20or%20there%20are%20other%20differences%3F/04%20-%20The%20signer%20uses%20both%20hands.png' controls />");
+      h.append("<p>For example, if the signer fingerspelled O-F-F with both hands, then the annotation is:</p>");
+      h.append("<ul><li>2:off</li></ul>");
+
+    }
+    else if (error_code == "missing star signer spelling error")
+    {
+      h.append("<p>It looks like there was an error with the signer misspelling the word.</p>");
+      h.append("<h3>Spelling mistakes</h3>")
+      h.append("<p class='eng'>If the letters spelled differ from the word intended, please record both in the annotation with an asterisk separating them:</p>");
+      h.append("<ul class='eng'><li>[letters spelled]*[letters intended]</li></ul>");
+      h.append("<video class='asl'preload='none' width='360' height='240' src='Instructions_videos/05%20-%20What%20if%20the%20fingerspelling%20is%20not%20clear%20or%20there%20are%20other%20differences%3F/01%20-%20Spellling%20mistakes.mov' poster='Instructions_videos/05%20-%20What%20if%20the%20fingerspelling%20is%20not%20clear%20or%20there%20are%20other%20differences%3F/01%20-%20Spellling%20mistakes.png' controls />");
+      h.append("<p>For example, if the signer spelled B-E-L-E-V-E but intended 'believe', your annotation should be:</p>");
+      h.append("<ul><li>beleve*believe</li></ul>");
+    }
+    else if (error_code == "annotator spelling error")
+    {
+      h.append("<p>It looks like there was an error with how you spelled the word the signer was trying to fingerspell.</p>");
+      h.append("<h3>Spelling mistakes</h3>")
+      h.append("<p class='eng'>If the letters spelled differ from the word intended, please record both in the annotation with an asterisk separating them:</p>");
+      h.append("<ul class='eng'><li>[letters spelled]*[letters intended]</li></ul>");
+      h.append("<video class='asl'preload='none' width='360' height='240' src='Instructions_videos/05%20-%20What%20if%20the%20fingerspelling%20is%20not%20clear%20or%20there%20are%20other%20differences%3F/01%20-%20Spellling%20mistakes.mov' poster='Instructions_videos/05%20-%20What%20if%20the%20fingerspelling%20is%20not%20clear%20or%20there%20are%20other%20differences%3F/01%20-%20Spellling%20mistakes.png' controls />");
+      h.append("<p>For example, if the signer spelled B-E-L-E-V-E but intended 'believe', your annotation should be:</p>");
+      h.append("<ul><li>beleve*believe</li></ul>");
+    }
+    else if (error_code == "spelling error")
+    {
+      h.append("<p>It looks like you misspelled or mis-labelled one of the words.</p>");
+    }
+    else if (error_code == "missing annotation/misalignment")
+    {
+      h.append("<p>It looks like you are missing an annotation, have too many annotations, or the annotations are very misaligned. Please check the annotation beginnings and endings veyr carefully, and make sure that you have annotated every single fingerspelled word.</p>");
+    }
+
+    h.append("<p>When you are ready to continue, press the button below.</p>");
+
+    $('<div class="button" id="failedverificationbutton">Try Again</div>').appendTo(h).button({
+        icons: {
+            primary: "ui-icon-refresh"
+        }
+    }).click(function() {
+        $("#turkic_overlay").remove();
+        h.remove();
+    }).wrap("<div style='text-align:center;padding:5x 0;' />");
 }
 
 function ui_submit_failedvalidation()
@@ -787,14 +907,46 @@ function ui_showinstructions(job)
 
     $('<div id="turkic_overlay"></div>').appendTo("#container");
     var h = $('<div id="instructionsdialog"></div>').appendTo("#container");
+    var inst_controls = $('<div id="instructionscontrols"></div>').appendTo(h);
 
-    $('<div class="button" id="instructionsclosetop" style="float: right;">Dismiss Instructions</div>').appendTo(h).button({
+    $('<div class="button" id="instructionsclosetop" style="float: right;">Dismiss Instructions</div>').appendTo(inst_controls).button({
         icons: {
             primary: "ui-icon-circle-close"
         }
     }).click(ui_closeinstructions);
 
+    $("<div id='languagecontrol'> \
+    <label for='switchASL'>ASL</label> \
+    <input type='checkbox' id='switchASL' checked = true/> \
+    <label for='switchEnglish'>English</label> \
+    <input type='checkbox' id='switchEnglish' /> \
+    </div>").appendTo(inst_controls);
+
     instructions(job, h)
+
+    // setup button set, and functions for toggling
+    $("#languagecontrol").buttonset();
+
+    // language controls setup
+    // By default disable English and click on asl
+    $(".eng").toggle();
+
+    $("#switchEnglish").click(function() {
+        $(".eng").toggle();
+        // Check if both english and asl are disabled
+        if (document.getElementById('switchASL').checked == false & document.getElementById('switchEnglish').checked == false ) {
+          document.getElementById('switchASL').click();
+        }
+    });
+
+    $("#switchASL").click(function() {
+        $(".asl").toggle();
+
+        // Check if both english and asl are disabled
+        if (document.getElementById('switchASL').checked == false & document.getElementById('switchEnglish').checked == false ) {
+          document.getElementById('switchEnglish').click();
+        }
+    });
 
     ui_disable();
 
@@ -812,7 +964,6 @@ function ui_showinstructions(job)
              ui_closeinstructions();
       }
     }, false);
-
 }
 
 function isChildOf(child, parent) {

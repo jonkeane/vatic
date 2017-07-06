@@ -13,26 +13,38 @@ logger = logging.getLogger("vatic.server")
 
 @handler()
 def getjob(id, verified):
+    # verified here is training (from bootstrap.js)
+    # if 1, there should be training (that is *not* verified)
+    # if 0 there should not be training (becuase the turker *is* verified)
     job = session.query(Job).get(id)
 
     logger.debug("Found job {0}".format(job.id))
+    logger.debug("Verified: {0}".format(int(verified)))
+    logger.debug("train with: {0}".format(job.segment.video.trainwith))
 
     if int(verified) and job.segment.video.trainwith:
+        # if job.segment.video.trainwith:
         # swap segment with the training segment
         training = True
         segment = job.segment.video.trainwith.segments[0]
-        logger.debug("Swapping actual segment with training segment")
+        train_with_id = job.segment.video.trainwithid
+        logger.debug("Swapping actual segment ({0}) with training segment ({1})".format(job.segment.video.id, train_with_id))
     else:
         training = False
         segment = job.segment
+        train_with_id = 0
+    logger.debug(segment)
 
     video = segment.video
+
     labels = dict((l.id, l.text) for l in video.labels)
+    logger.debug(format(labels))
 
     attributes = {}
     for label in video.labels:
         attributes[label.id] = dict((a.id, a.text) for a in label.attributes)
 
+    logger.debug(attributes)
     logger.debug("Giving user frames {0} to {1} of {2}".format(video.slug,
                                                                segment.start,
                                                                segment.stop))
@@ -49,7 +61,8 @@ def getjob(id, verified):
             "jobid":        job.id,
             "training":     int(training),
             "labels":       labels,
-            "attributes":   attributes}
+            "attributes":   attributes,
+            "train_with_id": train_with_id}
 
 @handler()
 def getboxesforjob(id):
@@ -132,13 +145,19 @@ def newlabel(id, postdata):
     label = Label(text = text, videoid = video.id)
     session.add(label)
 
+    logger.debug(video.labels)
     attributes = {}
     for lbl in video.labels:
+        logger.debug(lbl.id)
+        logger.debug(int(id))
         if lbl.id == int(id):
             # only copy attributes from the old label id
             attributes[lbl.id] = dict((a.id, a.text) for a in lbl.attributes)
 
     newAttributes = attributes[int(id)]
+
+    logger.debug('still working4')
+    logger.debug(newAttributes)
     for attributeText in newAttributes.values():
         attribute = Attribute(text = attributeText)
         # add label id so these attribute as associated with the new label
@@ -173,21 +192,57 @@ def offensive(id, postdata):
 
 @handler(post = "json")
 def validatejob(id, tracks):
+    logger.debug(id)
+    logger.debug(tracks)
+
     job = session.query(Job).get(id)
     paths = readpaths(tracks)
+    logger.debug(job)
+
+    logger.debug("Here are some paths!")
+    logger.debug(paths)
+    logger.debug(job.trainingjob.paths)
+    logger.debug("New paths")
+    for pth in paths:
+        logger.debug("\tid: "+format(pth.id))
+        logger.debug("\tjobid: "+format(pth.jobid))
+        logger.debug("\tjob: "+format(pth.job))
+        logger.debug("\tlabelid: "+format(pth.labelid))
+        logger.debug("\tlabel text: "+format(pth.label.text))
+
+    logger.debug("Training paths")
+    for pth in job.trainingjob.paths:
+        logger.debug("\tid: "+format(pth.id))
+        logger.debug("\tjobid: "+format(pth.jobid))
+        logger.debug("\tjob: "+format(pth.job))
+        logger.debug("\tlabelid: "+format(pth.labelid))
+        logger.debug("\tlabel: "+format(pth.label))
+        logger.debug("\tlabel text: "+format(pth.label.text))
+
+    logger.debug(format(job.trainingjob.validator))
+
 
     return job.trainingjob.validator(paths, job.trainingjob.paths)
 
 @handler()
 def respawnjob(id):
+    logger.debug("Respawning")
     job = session.query(Job).get(id)
 
     replacement = job.markastraining()
-    job.worker.verified = True
+    logger.debug(replacement)
+
+    # only verify worker if mturk is on (that is, worker exists)
+    if job.worker != None:
+        job.worker.verified = True
+
     session.add(job)
     session.add(replacement)
     session.commit()
 
-    replacement.publish()
+    # if on mturk:
+    replacement.publish() # fails here if not on mturk
+
+
     session.add(replacement)
     session.commit()

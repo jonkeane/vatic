@@ -88,19 +88,19 @@ class load(LoadCommand):
         return parser
 
     def title(self, args):
-        return "Action interval annotation in a video"
+        return "ASL fingerspelling annotation in a video"
 
     def description(self, args):
-        return "Mark the 'Start' and 'End' of an action in a video. Some of the actions that will be in the videos are SitDown, StandUp, HandShake, Kiss, etc."
+        return "Mark the 'Start' and 'End' of fingerspelling in a video. Also type the letters that are fingerspelled."
 
     def cost(self, args):
-        return 0.01
+        return 0.50
 
     def duration(self, args):
-        return 300
+        return 1800
 
     def keywords(self, args):
-        return "video, annotation, computer, vision, action, recognition"
+        return "video, annotation, sign language, asl, american sign language, computer, vision, recognition"
 
     def __call__(self, args, group):
         print "Checking integrity..."

@@ -2,8 +2,8 @@ import munkres
 
 def match(first, second, method):
     """
-    Attempts to match every path in 'first' with a path in 'second'. Returns 
-    the association along with its score. 
+    Attempts to match every path in 'first' with a path in 'second'. Returns
+    the association along with its score.
 
     Note: if two paths have nothing to do with each other, but there is no
     other suitable candidate, the two seeminly unrelated paths will be

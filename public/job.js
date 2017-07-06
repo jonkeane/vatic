@@ -13,7 +13,7 @@ function Job(data)
     this.blowradius = null;
     this.thisid = null;
     this.labels = null;
-    // this.idupforanno = null;
+    this.train_with_id = null;
 
     this.frameurl = function(i)
     {
@@ -41,6 +41,7 @@ function job_import(data)
     job.labels = data["labels"];
     job.attributes = data["attributes"];
     job.training = parseInt(data["training"]);
+    job.train_with_id = parseInt(data["train_with_id"]);
 
     console.log("Job configured!");
     // overly verbose logging for vatic-fingerspelling

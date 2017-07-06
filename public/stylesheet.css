@@ -197,6 +197,7 @@ code
     top : 50px;
     left : 50%;
     width : 550px;
+    height : 480px;
     margin-left : -275px;
     z-index : 10000000;
     padding : 10px;
@@ -236,10 +237,27 @@ code
     overflow : auto;
 }
 
+#instructionscontrols
+{
+    position : fixed;
+    right : 10%;
+}
+
 #instructionsclosetop
 {
     float : right;
     font-weight : bold;
+}
+
+#languagecontrol
+{
+  float: right;
+  font-weight : bold;
+}
+
+#instructionsdialog video
+{
+  margin-right : 20px;
 }
 
 .keyboardshortcuts
