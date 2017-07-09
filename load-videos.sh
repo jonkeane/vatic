@@ -83,7 +83,8 @@ fi
 for file in "${files[@]}"
 do
   b=$(basename "$file")
-  turkic load "$b" "$output$b" '' ~Start ~End "$training" "$offline"
+  CMD="turkic load $b $output$b '' ~Start ~End $training $offline"
+  eval "$CMD"
 done
 
 echo "Publishing the videos."
