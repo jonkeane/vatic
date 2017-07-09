@@ -130,7 +130,7 @@ def newlabel(id, postdata):
     # strip any charaters that are not in our annotation set
     # SQL alchemy should quote special characters, but this is a good defense as well.
     # This allows all letters, numbers, ?, *, [, ], :, #, !, -
-    text = re.sub("[^A-z0-9\?\*\[\]\:\#\!\\-]","",postdata['labeltext'])
+    text = re.sub("[^A-z0-9 \?\*\[\]\:\#\!\\-]","",postdata['labeltext'])
 
     if isinstance(postdata['jobid'], (int, long)):
         # only interact with DB if jobid is an integer (to avoid sql-injection)
