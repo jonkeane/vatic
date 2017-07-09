@@ -1,6 +1,6 @@
 var ui_disabled = 0;
 // maximum number of tries when validating
-max_tries = 2;
+max_tries = 4;
 
 function ui_build(job)
 {
@@ -782,7 +782,8 @@ function total_failedvalidation()
     h.appendTo("#container");
 
     h.append("<h1>Low Quality Work</h1>");
-    h.append("<p>Sorry, but your work is low quality. We cannot allow you to continue.</p>");
+    h.append("<p>Sorry, but your work is low quality. We cannot allow you to continue annotating.</p>");
+    h.append("<p>To leave, please press the Return <i>HIT button</i> above.</p>");
 }
 
 function ui_annotator_error(error_code)
