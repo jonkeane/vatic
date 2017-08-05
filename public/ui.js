@@ -756,7 +756,7 @@ function ui_submit(job, tracks, objectui)
             savejob(function() {
                 mturk_submit(function(redirect) {
                     respawnjob(function() {
-                        note.html("Good work!");
+                        note.html("Good work! Please remember to accept the next HIT in order to move on and start annotating.");
                         finishsubmit(redirect);
                     });
                 });
