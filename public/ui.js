@@ -756,7 +756,7 @@ function ui_submit(job, tracks, objectui)
             savejob(function() {
                 mturk_submit(function(redirect) {
                     respawnjob(function() {
-                        note.html("Good work!");
+                        note.html("Good work! Please remember to accept the next HIT in order to move on and start annotating.");
                         finishsubmit(redirect);
                     });
                 });
@@ -850,7 +850,7 @@ function ui_annotator_error(error_code)
     }
     else if (error_code == "missing annotation/misalignment")
     {
-      h.append("<p>It looks like you are missing an annotation, have too many annotations, or the annotations are very misaligned. Please check the annotation beginnings and endings veyr carefully, and make sure that you have annotated every single fingerspelled word.</p>");
+      h.append("<p>It looks like you are missing an annotation, have too many annotations, or the annotations are very misaligned. Please check the annotation beginnings and endings very carefully, and make sure that you have annotated every single fingerspelled word.</p>");
     }
 
     h.append("<p>When you are ready to continue, press the button below.</p>");
