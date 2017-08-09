@@ -97,7 +97,12 @@ class load(LoadCommand):
         return 0.50
 
     def duration(self, args):
-        return 1800
+        # 1.5 hours
+	return 5400
+
+    def lifetime(self, args):
+	# 60 days
+	return 5184000
 
     def keywords(self, args):
         return "video, annotation, sign language, asl, american sign language, computer, vision, recognition"
