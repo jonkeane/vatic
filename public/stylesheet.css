@@ -424,6 +424,23 @@ code
     opacity : 1 !important;
 }
 
+#startendbar
+{
+    float : left;
+}
+
+#startbutton
+{
+    font-weight : bold;
+    width : 80px;
+    margin-right : 6px;
+}
+#endbutton
+{
+    font-weight : bold;
+    width : 80px;
+}
+
 #submitbar
 {
     text-align : center;

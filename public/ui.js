@@ -66,6 +66,9 @@ function ui_setup(job)
           "<td><div id='bottombar' style='float: left;'></div><div id='advancedoptions'></div></td>" +
               "<td><div id='submitbar'></div></td>" +
           "</tr>" +
+          "<tr>" +
+              "<td><div id='startendbar'></div></td>" +
+          "</tr>" +
       "</table>").appendTo(screen).css("width", "100%");
 
 //    job.width = job.width + 200;
@@ -94,7 +97,7 @@ function ui_setup(job)
     $("#bottombar").append("<div class='button' id='rewindbutton'>Rewind</div> ");
     $("#bottombar").append("<div class='button' id='playbutton'>Play</div> ");
 
-    $("#topbar").append("<div id='newobjectcontainer'>" +
+    $("#startendbar").append("<div id='newobjectcontainer'>" +
         "<div class='button' id='startbutton'>Start</div>" +
         "<div class='button' id='endbutton'>End</div></div></div>");
 
