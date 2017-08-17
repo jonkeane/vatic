@@ -4,7 +4,7 @@
 # Usage:
 # dump-all.sh folder
 
-files=($(turkic list --completed | awk '{print $1}'))
+files=($(turkic list --completed | awk 'NR>1 {print $1}'))
 
 echo $files
 
