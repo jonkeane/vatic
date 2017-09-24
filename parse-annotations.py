@@ -54,11 +54,12 @@ def parse_one_file(fl, dest_path):
                     anno["startframe"] = frame
                 if attr_up == "End":
                     anno["endframe"] = frame
+                if anno["startframe"] is not None and anno["endframe"] is not None:
                     annos.append(anno)
             # ensure there are no surprises    
-            if frame < anno["startframe"]:
+            if attr_up == "Start" and frame < anno["startframe"]:
                 raise Exception('There is a misordering of start frame annotations')
-            if frame < anno["endframe"]:
+            if attr_up == "End" and frame < anno["endframe"]:
                 raise Exception('There is a misordering of end frame annotations')
 
     if len(annos) > 0:
