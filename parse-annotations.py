@@ -87,6 +87,7 @@ if __name__ == '__main__':
     dest_path = args.output_dir
     files = args.files
     for fl in files:
+        print("")
         print("Working on file: "+fl)
         annos, base_file = parse_one_file(fl, dest_path)
         
