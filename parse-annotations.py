@@ -1,17 +1,26 @@
 #! /usr/local/bin/python
-# ./parse-annotations.py path/to/output/folder path/to/vatic-dump
+# ./parse-annotations.py --output_dir path/to/output/folder path/to/vatic-dump
+# to make elan files, add the options: --make_elan --videos_location ../path/to/video/files/
 
-import csv, sys, os
+
+import csv, sys, os, re, argparse, shutil, tempfile
+import pyelan.pyelan as pyelan
 
 def parse_one_file(fl, dest_path):
+    """
+    fl file to parse
+    dest_path the path to write the new csv to
+    
+    """
     annos = []
     label_up = ""
     attr_up = ""
     
     # filenames
     old_file = fl
-    new_file = os.path.basename(old_file) 
-    new_file = os.path.splitext(new_file)[0] + ".csv"
+    base_file = os.path.basename(old_file) 
+    base_file = os.path.splitext(base_file)[0]
+    new_file = base_file + ".csv"
     new_file = os.path.join(dest_path, new_file)
 
     with open(old_file) as ssv:
@@ -58,10 +67,84 @@ def parse_one_file(fl, dest_path):
             dict_writer = csv.DictWriter(output_file, annos[0].keys(), quoting=csv.QUOTE_NONNUMERIC)
             dict_writer.writeheader()
             dict_writer.writerows(annos)
+    return(annos, base_file)
+
+
+if __name__ == '__main__':
+    """
+    The main loop that runs when you run the script
+    """
+    # parse arguments        
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument('--output_dir', metavar='path-to-destination', help='Output directory')
+    parser.add_argument('--make_elan', action='store_true', help='Make elan files')
+    parser.add_argument('--videos_location', metavar='path-to-videos', help='Location of video files (only used when making elan files)')
+    parser.add_argument('files', type=str, nargs='+', metavar='dump files to process', help='files')
+    args = parser.parse_args()
+
+    dest_path = args.output_dir
+    files = args.files
+    for fl in files:
+        print("Working on file: "+fl)
+        annos, base_file = parse_one_file(fl, dest_path)
         
-        
-dest_path = sys.argv[1]
-files = sys.argv[2:]
-for fl in files:
-    print("Working on file: "+fl)
-    parse_one_file(fl, dest_path)
+        if args.make_elan and len(annos) > 0:
+            if args.videos_location is None:
+                vids_loc = "./"
+            else:
+                vids_loc = args.videos_location
+                
+            vid_loc = []
+            # find the appropriate video
+            for dirpath, subdirs, files in os.walk(vids_loc, topdown=False, followlinks=False):
+                for x in files:
+                    if re.match(base_file, x):
+                        vid_loc.append(os.path.join(dirpath, x))
+                    
+            # make temp dir for elan file and video
+            temp_dir = os.path.join(tempfile.gettempdir(), base_file)
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+            os.makedirs(temp_dir)
+            
+            # check if there is more than or less than one matching video
+            if len(vid_loc) > 1:
+                print("It looks like there is more than one video that matches this filename. Please try specifying a more specific location.")
+            if len(vid_loc) < 1:
+                print("There is no video that matches this filename. Creating an elan file, but the video will have to be manually linked.")
+            else: 
+                # copy the videos if it's the only one.
+                old_vid_loc = vid_loc
+                for vid in old_vid_loc:
+                    vid_loc = [os.path.join(temp_dir, base_file)]
+                    shutil.copyfile(vid, vid_loc[0])
+                
+            # create elan annotations per annotation found
+            annos_to_add = []
+            for anno in annos:
+                annos_to_add.append(pyelan.annotation(
+                    begin=int(round(anno["startframe"]*33.3667)), # convert from frames to milliseconds
+                    end=int(round(anno["endframe"]*33.3667)), # convert from frames to milliseconds
+                    value=anno["label"])
+                    )
+            
+            # make tiers and write the elan file
+            tiers_to_add = pyelan.tier("mturk annotation", annos_to_add)
+            allTiers = pyelan.tierSet(media=vid_loc, tiers=[tiers_to_add])
+            elanOut = os.path.join(temp_dir,'.'.join([base_file,"eaf"]))
+            out = pyelan.tierSet.elanOut(allTiers, dest=elanOut)
+            # replace the absolute path since it will be wrong
+            try:
+                out.getroot()[0][1].attrib["MEDIA_URL"] = "file://" + out.getroot()[0][1].attrib["RELATIVE_MEDIA_URL"]
+            except:
+                pass
+            out.write(elanOut)
+            
+            # zip up the temp dir
+            shutil.make_archive(os.path.join(dest_path, base_file), 'zip', temp_dir)
+            
+            shutil.rmtree(temp_dir)
+            print("Wrote the elan file: " + elanOut)
+
+                    
+
