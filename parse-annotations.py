@@ -1,4 +1,4 @@
-#! /usr/local/bin/python
+#! /usr/bin/python
 # ./parse-annotations.py --output_dir path/to/output/folder path/to/vatic-dump
 # to make elan files, add the options: --make_elan --videos_location ../path/to/video/files/
 
