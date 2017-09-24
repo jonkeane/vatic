@@ -144,7 +144,7 @@ if __name__ == '__main__':
             shutil.make_archive(os.path.join(dest_path, base_file), 'zip', temp_dir)
             
             shutil.rmtree(temp_dir)
-            print("Wrote the elan file: " + elanOut)
+            print("Wrote the elan file in the archive: " + base_file + ".zip")
 
                     
 
