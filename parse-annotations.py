@@ -67,6 +67,7 @@ def parse_one_file(fl, dest_path):
             dict_writer = csv.DictWriter(output_file, annos[0].keys(), quoting=csv.QUOTE_NONNUMERIC)
             dict_writer.writeheader()
             dict_writer.writerows(annos)
+        print("Wrote the csv file: " + output_file)
     return(annos, base_file)
 
 
