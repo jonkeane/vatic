@@ -58,9 +58,7 @@ def parse_one_file(fl, dest_path):
                 if anno["startframe"] is not None and anno["endframe"] is not None:
                     # if anno is full, move on
                     annos.append(anno)
-                    anno = {"label": None, "startframe": None, "endframe": None}
-                    label_up = ""
-                    attr_up = ""
+                    anno = {"label": label_up, "startframe": None, "endframe": None}
             # ensure there are no surprises    
             if attr_up == "Start" and frame < anno["startframe"]:
                 raise Exception('There is a misordering of start frame annotations')
