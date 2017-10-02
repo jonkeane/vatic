@@ -72,6 +72,9 @@ def parse_one_file(fl, dest_path):
             dict_writer.writeheader()
             dict_writer.writerows(annos)
         print("Wrote the csv file: " + new_file)
+    else:
+        # write an empty file
+        open(new_file, 'a').close()
     return(annos, base_file)
 
 
@@ -94,7 +97,7 @@ if __name__ == '__main__':
         print("Working on file: "+fl)
         annos, base_file = parse_one_file(fl, dest_path)
         
-        if args.make_elan and len(annos) > 0:
+        if args.make_elan:
             if args.videos_location is None:
                 vids_loc = "./"
             else:
