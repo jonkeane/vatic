@@ -22,6 +22,7 @@ def parse_one_file(fl, dest_path):
     base_file = os.path.splitext(base_file)[0]
     new_file = base_file + ".csv"
     new_file = os.path.join(dest_path, new_file)
+    anno = {"label": None, "startframe": None, "endframe": None}
 
     with open(old_file) as ssv:
         for line in csv.reader(ssv, delimiter=" "): 
@@ -44,7 +45,7 @@ def parse_one_file(fl, dest_path):
             if label_up != line[9]:
                 # we've got a new label, move on
                 label_up = line[9]
-                anno = {"label": label_up, "startframe": None, "endframe": None}
+                anno["label"] = label_up
                 
             if attr_up != line[10]:
                 # we've got a new label
@@ -55,13 +56,17 @@ def parse_one_file(fl, dest_path):
                 if attr_up == "End":
                     anno["endframe"] = frame
                 if anno["startframe"] is not None and anno["endframe"] is not None:
+                    # if anno is full, move on
                     annos.append(anno)
+                    anno = {"label": None, "startframe": None, "endframe": None}
+                    label_up = ""
+                    attr_up = ""
             # ensure there are no surprises    
             if attr_up == "Start" and frame < anno["startframe"]:
                 raise Exception('There is a misordering of start frame annotations')
             if attr_up == "End" and frame < anno["endframe"]:
                 raise Exception('There is a misordering of end frame annotations')
-
+            
     if len(annos) > 0:
         # only if there are annotations, write a csv
         with open(new_file, 'wb') as output_file:
