@@ -244,8 +244,10 @@ class load(LoadCommand):
                         segment.stop = video.totalframes
                 else:
                     segment.stop = video.totalframes
-                job = Job(segment = segment, group = group, ready = False)
                 session.add(segment)
+                hit = turkic.models.HIT(group = group)
+                session.add(hit)
+                job = Job(segment = segment, group = group, hit = hit, ready = False)
                 session.add(job)
         elif args.use_frames:
             with open(args.use_frames) as useframes:
@@ -262,9 +264,13 @@ class load(LoadCommand):
                         segment = Segment(start = start,
                                           stop = stop,
                                           video = video)
-                        job = Job(segment = segment, group = group)
                         session.add(segment)
-                        session.add(job)
+                        hit = turkic.models.HIT(group = group)
+                        session.add(hit)
+                        # add n jobs for each possible max assignmentid
+                        for n in range(0, self.maxassignments(args)):
+                            job = Job(segment = segment, group = group, hit = hit)
+                            session.add(job)
         else:
             startframe = args.start_frame
             stopframe = args.stop_frame
@@ -276,9 +282,13 @@ class load(LoadCommand):
                 segment = Segment(start = start,
                                     stop = stop,
                                     video = video)
-                job = Job(segment = segment, group = group)
                 session.add(segment)
-                session.add(job)
+                hit = turkic.models.HIT(group = group)
+                session.add(hit)
+                # add n jobs for each possible max assignmentid
+                for n in range(0, self.maxassignments(args)):
+                    job = Job(segment = segment, group = group, hit = hit)
+                    session.add(job)
 
         if args.per_object_bonus:
             group.schedules.append(

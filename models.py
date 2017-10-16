@@ -88,11 +88,11 @@ class Segment(turkic.database.Base):
                 paths.extend(job.paths)
         return paths
 
-class Job(turkic.models.HIT):
+class Job(turkic.models.Assignment):
     __tablename__ = "jobs"
     __mapper_args__ = {"polymorphic_identity": "jobs"}
 
-    id             = Column(Integer, ForeignKey(turkic.models.HIT.id),
+    id             = Column(Integer, ForeignKey(turkic.models.Assignment.id),
                             primary_key = True)
     segmentid      = Column(Integer, ForeignKey(Segment.id))
     segment        = relationship(Segment,

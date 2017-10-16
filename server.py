@@ -16,7 +16,8 @@ def getjob(id, verified):
     # verified here is training (from bootstrap.js)
     # if 1, there should be training (that is *not* verified)
     # if 0 there should not be training (becuase the turker *is* verified)
-    job = session.query(Job).get(id)
+
+    job = session.query(Job).filter(Job.assignmentid == None).first()
 
     logger.debug("Found job {0}".format(job.id))
     logger.debug("Verified: {0}".format(int(verified)))
