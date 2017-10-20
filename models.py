@@ -108,14 +108,15 @@ class Job(turkic.models.Assignment):
         Marks this job as the result of a training run. This will automatically
         swap this job over to the training video and produce a replacement.
         """
-        replacement = Job(segment = self.segment, group = self.group)
+        replacement_hit = turkic.models.HIT(group = self.group)
+        replacement = Job(segment = self.segment, group = self.group, hit = replacement_hit)
         self.segment = self.segment.video.trainwith.segments[0]
         self.group = self.segment.jobs[0].group
         self.istraining = True
 
         logger.debug("Job is now training and replacement built")
 
-        return replacement
+        return replacement, replacement_hit
 
     def invalidate(self):
         """

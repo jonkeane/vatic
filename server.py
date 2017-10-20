@@ -16,8 +16,21 @@ def getjob(id, verified):
     # verified here is training (from bootstrap.js)
     # if 1, there should be training (that is *not* verified)
     # if 0 there should not be training (becuase the turker *is* verified)
+    job = session.query(Job).get(id)
 
-    job = session.query(Job).filter(Job.assignmentid == None).first()
+    # check if this job should actually be incrimented by one.
+    # iterate more in case there is more than one assignment.
+    queue = session.query(Job).get(id)
+    max_assign = queue.group.maxassignments
+    iters = 0
+    while queue.assignmentid is not None:
+        iters += 1
+        if iters > max_assign: break # stop the while if there have been more iterations than possible assignments
+        print("assignment id is aleady assigned, upping the following jobid by one:")
+        print(queue.assignmentid)
+        # this job has already been assigned:
+        id = int(id) + 1
+        job = session.query(Job).get(id)
 
     logger.debug("Found job {0}".format(job.id))
     logger.debug("Verified: {0}".format(int(verified)))
@@ -230,7 +243,7 @@ def respawnjob(id):
     logger.debug("Respawning")
     job = session.query(Job).get(id)
 
-    replacement = job.markastraining()
+    replacement, replacement_hit = job.markastraining()
     logger.debug(replacement)
 
     # only verify worker if mturk is on (that is, worker exists)
@@ -239,10 +252,14 @@ def respawnjob(id):
 
     session.add(job)
     session.add(replacement)
+    session.add(replacement_hit)
     session.commit()
 
     # if on mturk:
-    replacement.publish() # fails here if not on mturk
+    # publish only a single new assignment after training (so we aren't 
+    # balooning the number of assignments for the first hit).
+    replacement_hit.group.maxassignments = 1
+    replacement_hit.publish() # must only publish one?
 
 
     session.add(replacement)

@@ -245,9 +245,9 @@ class load(LoadCommand):
                 else:
                     segment.stop = video.totalframes
                 session.add(segment)
-                hit = turkic.models.HIT(group = group)
+                hit = turkic.models.HIT(group = group, ready = False)
                 session.add(hit)
-                job = Job(segment = segment, group = group, hit = hit, ready = False)
+                job = Job(segment = segment, group = group, hit = hit)
                 session.add(job)
         elif args.use_frames:
             with open(args.use_frames) as useframes:
