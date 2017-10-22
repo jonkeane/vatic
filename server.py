@@ -7,30 +7,51 @@ from turkic.database import session
 import cStringIO
 from models import *
 import re
+import turkic.models
 
 import logging
 logger = logging.getLogger("vatic.server")
 
 @handler()
-def getjob(id, verified):
+def getjob(id, verified, assignmentid = None, idtype = None):
     # verified here is training (from bootstrap.js)
     # if 1, there should be training (that is *not* verified)
     # if 0 there should not be training (becuase the turker *is* verified)
-    job = session.query(Job).get(id)
 
-    # check if this job should actually be incrimented by one.
-    # iterate more in case there is more than one assignment.
-    queue = session.query(Job).get(id)
-    max_assign = queue.group.maxassignments
-    iters = 0
-    while queue.assignmentid is not None:
-        iters += 1
-        if iters > max_assign: break # stop the while if there have been more iterations than possible assignments
-        print("assignment id is aleady assigned, upping the following jobid by one:")
-        print(queue.assignmentid)
-        # this job has already been assigned:
-        id = int(id) + 1
+    # what kind of id are we using? if vatic, we can use the job table
+    # if mturk, we need to do some juggling to get the right one.
+    if idtype == "vatic_job":
         job = session.query(Job).get(id)
+
+        # check if this job should actually be incrimented by one.
+        # iterate more in case there is more than one assignment.
+        queue = session.query(Job).get(id)
+        max_assign = queue.group.maxassignments
+        iters = 0
+        print("Got this assignment id from the DB:")
+        print(queue.assignmentid)
+        print("Got this assignment id from the request:")
+        print(assignmentid)
+        # need to deal with the case (during save) where there *is* an assignmentid
+        while queue.assignmentid is not None:
+            iters += 1
+            if iters > max_assign: break # stop the while if there have been more iterations than possible assignments
+            print("assignment id is aleady assigned, upping the following jobid by one:")
+            print(id)
+            # this job has already been assigned:
+            id = int(id) + 1
+            queue = session.query(Job).get(id) # save in queue to break the while loop
+            job = queue # save in job for use later
+    elif idtype == "mturk":
+        # get the Assignments where this mturk hitid is used
+        query = session.query(Job).filter(turkic.models.Assignment.hitid == id)
+        # filter to be only those that haven't been completed / assigned already
+        query = query.filter(turkic.models.Assignment.assignmentid == None)
+        # grab the first one.
+        job = query.first()
+        print("Got an mturk hitid of " + id + ". Using the first available jobid connected to that hit: " + str(job.id))
+    else:
+        print("There is no idtype, this is a problem.")
 
     logger.debug("Found job {0}".format(job.id))
     logger.debug("Verified: {0}".format(int(verified)))
@@ -241,6 +262,7 @@ def validatejob(id, tracks):
 @handler()
 def respawnjob(id):
     logger.debug("Respawning")
+    print("Respawn got id: " + id)
     job = session.query(Job).get(id)
 
     replacement, replacement_hit = job.markastraining()
@@ -248,7 +270,11 @@ def respawnjob(id):
 
     # only verify worker if mturk is on (that is, worker exists)
     if job.worker != None:
+        print("Got a worker, so marking as verified")
         job.worker.verified = True
+    else:
+        print("There's not a worker, WTF?")
+        print(dir(job))
 
     session.add(job)
     session.add(replacement)
@@ -256,7 +282,7 @@ def respawnjob(id):
     session.commit()
 
     # if on mturk:
-    # publish only a single new assignment after training (so we aren't 
+    # publish only a single new assignment after training (so we aren't
     # balooning the number of assignments for the first hit).
     replacement_hit.group.maxassignments = 1
     replacement_hit.publish() # must only publish one?

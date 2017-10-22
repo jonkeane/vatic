@@ -583,8 +583,9 @@ function TrackObject(job, player, container, color, objectui, kind)
           return;
         }
 
+        parameters = mturk_parameters();
         // update job
-        server_request("getjob", [this.job.jobid, this.job.training], function(resp) {
+        server_request("getjob", [this.job.jobid, this.job.training, parameters["assignmentid"], "vatic_job"], function(resp) {
             me.update_ui(resp, response)
         });
       }
