@@ -789,6 +789,16 @@ function total_failedvalidation()
     h.append("<p>To leave, please press the Return <i>HIT button</i> above.</p>");
 }
 
+function ui_getjob_error(msg)
+{
+    $('<div id="turkic_overlay"></div>').appendTo("#container");
+    var h = $('<div id="failedverificationdialog"></div>')
+    h.appendTo("#container");
+
+    h.append("<h1>Oops!</h1>");
+    h.append(msg);
+}
+
 function ui_annotator_error(error_code)
 {
     $('<div id="turkic_overlay"></div>').appendTo("#container");

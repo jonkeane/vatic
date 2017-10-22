@@ -49,6 +49,10 @@ def getjob(id, verified, assignmentid = None, idtype = None):
         query = query.filter(turkic.models.Assignment.assignmentid == None)
         # grab the first one.
         job = query.first()
+        # if there are no more jobs, fail gracefully
+        if job is None:
+            return({"error_msg": "<p>There don't appear to be any more assignments associated with this HIT. </p> <p>To try again refresh your browser window or try opening a new window and searching for 'ASL fingerspelling' at the main HIT search screen.</p>"})
+
         print("Got an mturk hitid of " + id + ". Using the first available jobid connected to that hit: " + str(job.id))
     else:
         print("There is no idtype, this is a problem.")
