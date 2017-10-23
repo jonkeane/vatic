@@ -20,6 +20,7 @@ import qa
 import merge
 import parsedatetime.parsedatetime
 import datetime, time
+import re
 
 @handler("Decompresses an entire video into frames")
 class extract(Command):
@@ -618,6 +619,7 @@ class dump(DumpCommand):
                 data['occluded'] = box.occluded
                 data['label'] = track.label
                 data['attributes'] = box.attributes
+                data['worker'] = re.sub("[\['\]]", "", str(track.workers))
                 results.append(data)
 
         from scipy.io import savemat as savematlab
@@ -636,7 +638,9 @@ class dump(DumpCommand):
                 file.write(" xbr=\"{0}\"".format(box.xbr))
                 file.write(" ybr=\"{0}\"".format(box.ybr))
                 file.write(" outside=\"{0}\"".format(box.lost))
-                file.write(" occluded=\"{0}\">".format(box.occluded))
+                file.write(" occluded=\"{0}\"".format(box.occluded))
+                workers = re.sub("[\['\]]", "", str(track.workers))
+                file.write(" worker=\"{0}\">".format(workers))
                 for attr in box.attributes:
                     file.write("<attribute id=\"{0}\">{1}</attribute>".format(
                                attr.id, attr.text))
@@ -658,7 +662,8 @@ class dump(DumpCommand):
                 boxdata['ybr'] = box.ybr
                 boxdata['outside'] = box.lost
                 boxdata['occluded'] = box.occluded
-                boxdata['attributes'] = box.attributes
+                boxdata['attributes'] = [attr.text for attr in box.attributes]
+                boxdata['workers'] = re.sub("[\['\]]", "", str(track.workers))            
                 boxes[int(box.frame)] = boxdata
             result['boxes'] = boxes
             annotations[int(id)] = result
@@ -673,6 +678,8 @@ class dump(DumpCommand):
             result = {}
             result['label'] = track.label
             result['boxes'] = track.boxes
+            result['workers'] = re.sub("[\['\]]", "", str(track.workers))            
+
             annotations.append(result)
 
         import pickle
@@ -705,6 +712,10 @@ class dump(DumpCommand):
                     file.write(" \"")
                     file.write(attr.text)
                     file.write("\"")
+                file.write(" \"")
+                workers = re.sub("[\['\]]", "", str(track.workers))
+                file.write(workers)
+                file.write("\"")
                 file.write("\n")
 
     def dumplabelme(self, file, data, slug, folder):
@@ -1088,6 +1099,21 @@ class listvideos(Command):
         parser.add_argument("--worker")
         return parser
 
+    def print_one_video(self, vid, video):
+        newvideos = dict()
+        for t in vid:
+            l = list()
+            if t.timeonserver is None:
+                l.append(datetime.datetime.now())
+            else:
+                l.append(t.timeonserver)
+                l.append(t)
+            newvideos[video.slug] = l
+            sorted_list = [x for x in newvideos.iteritems()]
+            sorted_list.sort(key=lambda x: x[1][0]) # sort by key
+            for k in sorted_list:
+                print k[0], "---", k[1][1].id, "---", k[1][0], "---", k[1][1].hitid, "---", k[1][1].assignmentid, "---", k[1][1].workerid
+
     def __call__(self, args):
         videos = session.query(Video)
 
@@ -1115,25 +1141,11 @@ class listvideos(Command):
         if args.count:
             print videos.count()
         else:
-	    newvideos = dict()
 	    print "Identifier", '-------', 'jobid', '------', 'timeonserver', ' ------------------- HitId', ' ------------------- AssignmentId', ' --------------- WorkerId'
-            for video in videos.distinct():
-#                print video.slug
-		# Print videos sorted by time
-		test = session.query(Job).filter(Job.useful == True)
-		test = test.join(Segment).filter(Segment.videoid == video.id)
-		if test.count() != 1:
-		    print "Error: ", test.count()
-		    break
-		for t in test:
-		    l = list()
-		    if t.timeonserver is None:
-			l.append(datetime.datetime.now())
-		    else:
-			l.append(t.timeonserver)
-		    l.append(t)
-		    newvideos[video.slug] = l
-	    sorted_list = [x for x in newvideos.iteritems()]
-	    sorted_list.sort(key=lambda x: x[1][0]) # sort by key
-	    for k in sorted_list:
-		print k[0], "---", k[1][1].id, "---", k[1][0], "---", k[1][1].hitid, "---", k[1][1].assignmentid, "---", k[1][1].workerid
+        for video in videos.distinct():
+		    # Print videos sorted by time
+            test = session.query(Job).filter(Job.useful == True)
+            test = test.join(Segment).filter(Segment.videoid == video.id)
+            self.print_one_video(test, video)
+
+                
