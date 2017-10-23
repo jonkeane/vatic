@@ -388,11 +388,14 @@ class DumpCommand(Command):
     parent.add_argument("--worker", "-w", nargs = "*", default = None)
 
     class Tracklet(object):
-        def __init__(self, label, paths, boxes, workers):
+        def __init__(self, label, paths, boxes, workers, hitid = None,
+        assignmentid = None):
             self.label = label
             self.paths = paths
             self.boxes = sorted(boxes, key = lambda x: x.frame)
             self.workers = workers
+            self.hitid = hitid
+            self.assignmentid = assignmentid
 
         def bind(self):
             for path in self.paths:
@@ -419,11 +422,15 @@ class DumpCommand(Command):
                     if not job.useful:
                         continue
                     worker = job.workerid
+                    hitid = job.hit.hitid
+                    assignmentid = job.assignmentid
                     for path in job.paths:
                         tracklet = DumpCommand.Tracklet(path.label.text,
                                                         [path],
                                                         path.getboxes(),
-                                                        [worker])
+                                                        [worker],
+                                                        [hitid],
+                                                        [assignmentid])
                         response.append(tracklet)
 
         if args.worker:
@@ -434,7 +441,8 @@ class DumpCommand(Command):
         for track in response:
             path = vision.track.interpolation.LinearFill(track.boxes)
             tracklet = DumpCommand.Tracklet(track.label, track.paths,
-                                            path, track.workers)
+                                            path, track.workers,
+                                            track.hitid, track.assignmentid)
             interpolated.append(tracklet)
         response = interpolated
 
@@ -549,7 +557,7 @@ class dump(DumpCommand):
 
     def __call__(self, args):
         video, data = self.getdata(args)
-
+        
         if args.pascal:
             if not args.output:
                 print "error: PASCAL output needs an output"
@@ -620,6 +628,8 @@ class dump(DumpCommand):
                 data['label'] = track.label
                 data['attributes'] = box.attributes
                 data['worker'] = re.sub("[\['\]]", "", str(track.workers))
+                data['hitid'] = re.sub("[\['\]]", "", str(track.hitid))
+                data['assignmentid'] = re.sub("[\['\]]", "", str(track.assignmentid))
                 results.append(data)
 
         from scipy.io import savemat as savematlab
@@ -640,7 +650,11 @@ class dump(DumpCommand):
                 file.write(" outside=\"{0}\"".format(box.lost))
                 file.write(" occluded=\"{0}\"".format(box.occluded))
                 workers = re.sub("[\['\]]", "", str(track.workers))
-                file.write(" worker=\"{0}\">".format(workers))
+                file.write(" worker=\"{0}\"".format(workers))
+                hitid = re.sub("[\['\]]", "", str(track.hitid))
+                file.write(" hitid=\"{0}\"".format(hitid))
+                assignmentid = re.sub("[\['\]]", "", str(track.assignmentid))
+                file.write(" assignmentid=\"{0}\">".format(assignmentid))
                 for attr in box.attributes:
                     file.write("<attribute id=\"{0}\">{1}</attribute>".format(
                                attr.id, attr.text))
@@ -653,6 +667,9 @@ class dump(DumpCommand):
         for id, track in enumerate(data):
             result = {}
             result['label'] = track.label
+            result['workers'] = re.sub("[\['\]]", "", str(track.workers))            
+            result['hitid'] = re.sub("[\['\]]", "", str(track.hitid))            
+            result['assignmentid'] = re.sub("[\['\]]", "", str(track.assignmentid)) 
             boxes = {}
             for box in track.boxes:
                 boxdata = {}
@@ -662,8 +679,7 @@ class dump(DumpCommand):
                 boxdata['ybr'] = box.ybr
                 boxdata['outside'] = box.lost
                 boxdata['occluded'] = box.occluded
-                boxdata['attributes'] = [attr.text for attr in box.attributes]
-                boxdata['workers'] = re.sub("[\['\]]", "", str(track.workers))            
+                boxdata['attributes'] = [attr.text for attr in box.attributes]           
                 boxes[int(box.frame)] = boxdata
             result['boxes'] = boxes
             annotations[int(id)] = result
@@ -679,6 +695,8 @@ class dump(DumpCommand):
             result['label'] = track.label
             result['boxes'] = track.boxes
             result['workers'] = re.sub("[\['\]]", "", str(track.workers))            
+            result['hitid'] = re.sub("[\['\]]", "", str(track.hitid))            
+            result['assignmentid'] = re.sub("[\['\]]", "", str(track.assignmentid))            
 
             annotations.append(result)
 
@@ -708,14 +726,22 @@ class dump(DumpCommand):
                 file.write(" \"")
                 file.write(track.label)
                 file.write("\"")
-                for attr in box.attributes:
-                    file.write(" \"")
-                    file.write(attr.text)
-                    file.write("\"")
                 file.write(" \"")
                 workers = re.sub("[\['\]]", "", str(track.workers))
                 file.write(workers)
                 file.write("\"")
+                file.write(" \"")
+                hitid = re.sub("[\['\]]", "", str(track.hitid))
+                file.write(hitid)
+                file.write("\"")
+                file.write(" \"")
+                assignmentid = re.sub("[\['\]]", "", str(track.assignmentid))
+                file.write(assignmentid)
+                file.write("\"")
+                for attr in box.attributes:
+                    file.write(" \"")
+                    file.write(attr.text)
+                    file.write("\"")
                 file.write("\n")
 
     def dumplabelme(self, file, data, slug, folder):

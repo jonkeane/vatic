@@ -3,16 +3,42 @@
 # dump the annotatoins for all completed videos to a folder, one file per video.
 # Usage:
 # dump-all.sh folder
+# dump-all.sh --json folder
+# dump-all.sh --text folder
+# dump-all.sh --xml folder
 
 files=($(turkic list --completed | awk 'NR>1 {print $1}'))
 
-echo $files
+# uniqify
+files=($(printf "%s\n" "${files[@]}" | sort -u))
+
+if [[ $1 == \-\-* ]];
+then
+    opt=$1
+    folder=$2
+else
+    opt='--text'
+    folder=$1
+fi
+
+case $opt in
+\-\-text)
+    ext='.txt'
+;;
+\-\-json)
+    ext='.json'
+;;
+\-\-xml)
+    ext='.xml'
+;;
+\-\-matlab)
+    ext='.matlab'
+;;
+esac 
 
 for file in "${files[@]}"
 do
-    ext='.txt'
-    folder=$1
     fileout=$folder'/'$file$ext
     echo 'writing '$fileout
-    turkic dump $file -o $fileout
+    turkic dump --json $file -o $fileout
 done
