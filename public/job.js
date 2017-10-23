@@ -21,7 +21,8 @@ function Job(data)
 //        folder2 = parseInt(Math.floor(i / 10000));
 //        return "frames/" + me.slug +
 //            "/" + folder2 + "/" + folder1 + "/" + parseInt(i) + ".jpg";
-        return "frames/" + me.slug +  "/" + parseInt(i) + ".jpg";
+        // add ?jobid= to force re-caching for different jobs.
+        return "frames/" + me.slug +  "/" + parseInt(i) + ".jpg" + "?jobid="+me.jobid;
    }
 }
 
