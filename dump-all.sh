@@ -17,14 +17,12 @@ then
     opt=$1
     folder=$2
 else
-    opt='--text'
+    opt=''
     folder=$1
 fi
 
+ext='.txt'
 case $opt in
-\-\-text)
-    ext='.txt'
-;;
 \-\-json)
     ext='.json'
 ;;
@@ -40,5 +38,5 @@ for file in "${files[@]}"
 do
     fileout=$folder'/'$file$ext
     echo 'writing '$fileout
-    turkic dump --json $file -o $fileout
+    turkic dump $opt $file -o $fileout
 done
