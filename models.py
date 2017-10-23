@@ -88,11 +88,11 @@ class Segment(turkic.database.Base):
                 paths.extend(job.paths)
         return paths
 
-class Job(turkic.models.HIT):
+class Job(turkic.models.Assignment):
     __tablename__ = "jobs"
     __mapper_args__ = {"polymorphic_identity": "jobs"}
 
-    id             = Column(Integer, ForeignKey(turkic.models.HIT.id),
+    id             = Column(Integer, ForeignKey(turkic.models.Assignment.id),
                             primary_key = True)
     segmentid      = Column(Integer, ForeignKey(Segment.id))
     segment        = relationship(Segment,
@@ -108,14 +108,15 @@ class Job(turkic.models.HIT):
         Marks this job as the result of a training run. This will automatically
         swap this job over to the training video and produce a replacement.
         """
-        replacement = Job(segment = self.segment, group = self.group)
+        replacement_hit = turkic.models.HIT(group = self.group)
+        replacement = Job(segment = self.segment, group = self.group, hit = replacement_hit)
         self.segment = self.segment.video.trainwith.segments[0]
         self.group = self.segment.jobs[0].group
         self.istraining = True
 
         logger.debug("Job is now training and replacement built")
 
-        return replacement
+        return replacement, replacement_hit
 
     def invalidate(self):
         """

@@ -20,6 +20,7 @@ import qa
 import merge
 import parsedatetime.parsedatetime
 import datetime, time
+import re
 
 @handler("Decompresses an entire video into frames")
 class extract(Command):
@@ -244,8 +245,10 @@ class load(LoadCommand):
                         segment.stop = video.totalframes
                 else:
                     segment.stop = video.totalframes
-                job = Job(segment = segment, group = group, ready = False)
                 session.add(segment)
+                hit = turkic.models.HIT(group = group, ready = False)
+                session.add(hit)
+                job = Job(segment = segment, group = group, hit = hit)
                 session.add(job)
         elif args.use_frames:
             with open(args.use_frames) as useframes:
@@ -262,9 +265,13 @@ class load(LoadCommand):
                         segment = Segment(start = start,
                                           stop = stop,
                                           video = video)
-                        job = Job(segment = segment, group = group)
                         session.add(segment)
-                        session.add(job)
+                        hit = turkic.models.HIT(group = group)
+                        session.add(hit)
+                        # add n jobs for each possible max assignmentid
+                        for n in range(0, self.maxassignments(args)):
+                            job = Job(segment = segment, group = group, hit = hit)
+                            session.add(job)
         else:
             startframe = args.start_frame
             stopframe = args.stop_frame
@@ -276,9 +283,13 @@ class load(LoadCommand):
                 segment = Segment(start = start,
                                     stop = stop,
                                     video = video)
-                job = Job(segment = segment, group = group)
                 session.add(segment)
-                session.add(job)
+                hit = turkic.models.HIT(group = group)
+                session.add(hit)
+                # add n jobs for each possible max assignmentid
+                for n in range(0, self.maxassignments(args)):
+                    job = Job(segment = segment, group = group, hit = hit)
+                    session.add(job)
 
         if args.per_object_bonus:
             group.schedules.append(
@@ -377,11 +388,14 @@ class DumpCommand(Command):
     parent.add_argument("--worker", "-w", nargs = "*", default = None)
 
     class Tracklet(object):
-        def __init__(self, label, paths, boxes, workers):
+        def __init__(self, label, paths, boxes, workers, hitid = None,
+        assignmentid = None):
             self.label = label
             self.paths = paths
             self.boxes = sorted(boxes, key = lambda x: x.frame)
             self.workers = workers
+            self.hitid = hitid
+            self.assignmentid = assignmentid
 
         def bind(self):
             for path in self.paths:
@@ -408,11 +422,15 @@ class DumpCommand(Command):
                     if not job.useful:
                         continue
                     worker = job.workerid
+                    hitid = job.hit.hitid
+                    assignmentid = job.assignmentid
                     for path in job.paths:
                         tracklet = DumpCommand.Tracklet(path.label.text,
                                                         [path],
                                                         path.getboxes(),
-                                                        [worker])
+                                                        [worker],
+                                                        [hitid],
+                                                        [assignmentid])
                         response.append(tracklet)
 
         if args.worker:
@@ -423,7 +441,8 @@ class DumpCommand(Command):
         for track in response:
             path = vision.track.interpolation.LinearFill(track.boxes)
             tracklet = DumpCommand.Tracklet(track.label, track.paths,
-                                            path, track.workers)
+                                            path, track.workers,
+                                            track.hitid, track.assignmentid)
             interpolated.append(tracklet)
         response = interpolated
 
@@ -538,7 +557,7 @@ class dump(DumpCommand):
 
     def __call__(self, args):
         video, data = self.getdata(args)
-
+        
         if args.pascal:
             if not args.output:
                 print "error: PASCAL output needs an output"
@@ -608,6 +627,9 @@ class dump(DumpCommand):
                 data['occluded'] = box.occluded
                 data['label'] = track.label
                 data['attributes'] = box.attributes
+                data['worker'] = re.sub("[\['\]]", "", str(track.workers))
+                data['hitid'] = re.sub("[\['\]]", "", str(track.hitid))
+                data['assignmentid'] = re.sub("[\['\]]", "", str(track.assignmentid))
                 results.append(data)
 
         from scipy.io import savemat as savematlab
@@ -626,7 +648,13 @@ class dump(DumpCommand):
                 file.write(" xbr=\"{0}\"".format(box.xbr))
                 file.write(" ybr=\"{0}\"".format(box.ybr))
                 file.write(" outside=\"{0}\"".format(box.lost))
-                file.write(" occluded=\"{0}\">".format(box.occluded))
+                file.write(" occluded=\"{0}\"".format(box.occluded))
+                workers = re.sub("[\['\]]", "", str(track.workers))
+                file.write(" worker=\"{0}\"".format(workers))
+                hitid = re.sub("[\['\]]", "", str(track.hitid))
+                file.write(" hitid=\"{0}\"".format(hitid))
+                assignmentid = re.sub("[\['\]]", "", str(track.assignmentid))
+                file.write(" assignmentid=\"{0}\">".format(assignmentid))
                 for attr in box.attributes:
                     file.write("<attribute id=\"{0}\">{1}</attribute>".format(
                                attr.id, attr.text))
@@ -639,6 +667,9 @@ class dump(DumpCommand):
         for id, track in enumerate(data):
             result = {}
             result['label'] = track.label
+            result['workers'] = re.sub("[\['\]]", "", str(track.workers))            
+            result['hitid'] = re.sub("[\['\]]", "", str(track.hitid))            
+            result['assignmentid'] = re.sub("[\['\]]", "", str(track.assignmentid)) 
             boxes = {}
             for box in track.boxes:
                 boxdata = {}
@@ -648,7 +679,7 @@ class dump(DumpCommand):
                 boxdata['ybr'] = box.ybr
                 boxdata['outside'] = box.lost
                 boxdata['occluded'] = box.occluded
-                boxdata['attributes'] = box.attributes
+                boxdata['attributes'] = [attr.text for attr in box.attributes]           
                 boxes[int(box.frame)] = boxdata
             result['boxes'] = boxes
             annotations[int(id)] = result
@@ -663,6 +694,10 @@ class dump(DumpCommand):
             result = {}
             result['label'] = track.label
             result['boxes'] = track.boxes
+            result['workers'] = re.sub("[\['\]]", "", str(track.workers))            
+            result['hitid'] = re.sub("[\['\]]", "", str(track.hitid))            
+            result['assignmentid'] = re.sub("[\['\]]", "", str(track.assignmentid))            
+
             annotations.append(result)
 
         import pickle
@@ -690,6 +725,18 @@ class dump(DumpCommand):
                 file.write(str(box.generated))
                 file.write(" \"")
                 file.write(track.label)
+                file.write("\"")
+                file.write(" \"")
+                workers = re.sub("[\['\]]", "", str(track.workers))
+                file.write(workers)
+                file.write("\"")
+                file.write(" \"")
+                hitid = re.sub("[\['\]]", "", str(track.hitid))
+                file.write(hitid)
+                file.write("\"")
+                file.write(" \"")
+                assignmentid = re.sub("[\['\]]", "", str(track.assignmentid))
+                file.write(assignmentid)
                 file.write("\"")
                 for attr in box.attributes:
                     file.write(" \"")
@@ -1078,6 +1125,21 @@ class listvideos(Command):
         parser.add_argument("--worker")
         return parser
 
+    def print_one_video(self, vid, video):
+        newvideos = dict()
+        for t in vid:
+            l = list()
+            if t.timeonserver is None:
+                l.append(datetime.datetime.now())
+            else:
+                l.append(t.timeonserver)
+                l.append(t)
+            newvideos[video.slug] = l
+            sorted_list = [x for x in newvideos.iteritems()]
+            sorted_list.sort(key=lambda x: x[1][0]) # sort by key
+            for k in sorted_list:
+                print k[0], "---", k[1][1].id, "---", k[1][0], "---", k[1][1].hitid, "---", k[1][1].assignmentid, "---", k[1][1].workerid
+
     def __call__(self, args):
         videos = session.query(Video)
 
@@ -1105,25 +1167,11 @@ class listvideos(Command):
         if args.count:
             print videos.count()
         else:
-	    newvideos = dict()
 	    print "Identifier", '-------', 'jobid', '------', 'timeonserver', ' ------------------- HitId', ' ------------------- AssignmentId', ' --------------- WorkerId'
-            for video in videos.distinct():
-#                print video.slug
-		# Print videos sorted by time
-		test = session.query(Job).filter(Job.useful == True)
-		test = test.join(Segment).filter(Segment.videoid == video.id)
-		if test.count() != 1:
-		    print "Error: ", test.count()
-		    break
-		for t in test:
-		    l = list()
-		    if t.timeonserver is None:
-			l.append(datetime.datetime.now())
-		    else:
-			l.append(t.timeonserver)
-		    l.append(t)
-		    newvideos[video.slug] = l
-	    sorted_list = [x for x in newvideos.iteritems()]
-	    sorted_list.sort(key=lambda x: x[1][0]) # sort by key
-	    for k in sorted_list:
-		print k[0], "---", k[1][1].id, "---", k[1][0], "---", k[1][1].hitid, "---", k[1][1].assignmentid, "---", k[1][1].workerid
+        for video in videos.distinct():
+		    # Print videos sorted by time
+            test = session.query(Job).filter(Job.useful == True)
+            test = test.join(Segment).filter(Segment.videoid == video.id)
+            self.print_one_video(test, video)
+
+                

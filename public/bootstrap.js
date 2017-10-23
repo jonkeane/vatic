@@ -41,8 +41,14 @@ function boot()
     function dispatch(training)
     {
         training = training ? 1 : 0;
-        server_request("getjob", [parameters["id"], training], function(data) {
-            loadingscreen(job_import(data));
+        server_request("getjob", [parameters["id"], training, parameters["assignmentid"], "mturk"], function(data) {
+            if (data.error_msg) {
+              console.log('There was an error.');
+              ui_enable(1);
+              ui_getjob_error(data.error_msg);
+            } else {
+              loadingscreen(job_import(data));              
+            }
         });
     }
 
