@@ -1173,4 +1173,7 @@ class listvideos(Command):
 		    # Print videos sorted by time
             test = session.query(Job).filter(Job.useful == True)
             test = test.join(Segment).filter(Segment.videoid == video.id)
+            if args.worker:
+                test = test.filter(Job.workerid == args.worker)
+
             self.print_one_video(test, video)
