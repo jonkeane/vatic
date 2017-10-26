@@ -557,7 +557,7 @@ class dump(DumpCommand):
 
     def __call__(self, args):
         video, data = self.getdata(args)
-        
+
         if args.pascal:
             if not args.output:
                 print "error: PASCAL output needs an output"
@@ -667,9 +667,9 @@ class dump(DumpCommand):
         for id, track in enumerate(data):
             result = {}
             result['label'] = track.label
-            result['workers'] = re.sub("[\['\]]", "", str(track.workers))            
-            result['hitid'] = re.sub("[\['\]]", "", str(track.hitid))            
-            result['assignmentid'] = re.sub("[\['\]]", "", str(track.assignmentid)) 
+            result['workers'] = re.sub("[\['\]]", "", str(track.workers))
+            result['hitid'] = re.sub("[\['\]]", "", str(track.hitid))
+            result['assignmentid'] = re.sub("[\['\]]", "", str(track.assignmentid))
             boxes = {}
             for box in track.boxes:
                 boxdata = {}
@@ -679,7 +679,7 @@ class dump(DumpCommand):
                 boxdata['ybr'] = box.ybr
                 boxdata['outside'] = box.lost
                 boxdata['occluded'] = box.occluded
-                boxdata['attributes'] = [attr.text for attr in box.attributes]           
+                boxdata['attributes'] = [attr.text for attr in box.attributes]
                 boxes[int(box.frame)] = boxdata
             result['boxes'] = boxes
             annotations[int(id)] = result
@@ -694,9 +694,9 @@ class dump(DumpCommand):
             result = {}
             result['label'] = track.label
             result['boxes'] = track.boxes
-            result['workers'] = re.sub("[\['\]]", "", str(track.workers))            
-            result['hitid'] = re.sub("[\['\]]", "", str(track.hitid))            
-            result['assignmentid'] = re.sub("[\['\]]", "", str(track.assignmentid))            
+            result['workers'] = re.sub("[\['\]]", "", str(track.workers))
+            result['hitid'] = re.sub("[\['\]]", "", str(track.hitid))
+            result['assignmentid'] = re.sub("[\['\]]", "", str(track.assignmentid))
 
             annotations.append(result)
 
@@ -1131,6 +1131,7 @@ class listvideos(Command):
             l = list()
             if t.timeonserver is None:
                 l.append(datetime.datetime.now())
+                l.append(t)
             else:
                 l.append(t.timeonserver)
                 l.append(t)
@@ -1173,5 +1174,3 @@ class listvideos(Command):
             test = session.query(Job).filter(Job.useful == True)
             test = test.join(Segment).filter(Segment.videoid == video.id)
             self.print_one_video(test, video)
-
-                
