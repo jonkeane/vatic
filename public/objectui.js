@@ -1,5 +1,8 @@
 // the magic label is used to detect when a brand new annotation has been made.
+// fake_blank is used when a user tries to save "" as a label to not be confused
+// with magic_label
 var magic_label = "";
+var fake_blank = " "; 
 var magic_label_id = null;
 
 function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, endbutton)
@@ -812,7 +815,7 @@ function TrackObject(job, player, container, color, objectui, kind)
       	this.headerdetails.append("<div style='float:right;'><div class='ui-icon ui-icon-trash' id='trackobject" + this.id + "delete' title='Delete this annotation'></div></div>");
         $("#trackobject" + this.id + "delete").click(function() {
 
-            if (window.confirm("Delete the " + me.job.labels[me.label] + " " + me.job.attributes[me.track.label][me.attrid] + " annotation?"))
+            if (window.confirm("Delete the " + me.job.labels[me.label] + fake_blank + me.job.attributes[me.track.label][me.attrid] + " annotation?"))
             {
                 me.remove();
                 eventlog("removeobject", "Deleted an annotation");
@@ -873,7 +876,7 @@ function TrackObject(job, player, container, color, objectui, kind)
           $( strongfield ).replaceWith('<input type="text" id="newWord", value="'+me.job.labels[me.label]+'">');
           textinput = $( headerobj ).find("input")[0];
 
-
+          $(textinput).unbind("keyup"); // unbind any that are already bound
           // catch the keys
           $(textinput).keyup(function(e){
               if(e.keyCode == 13)
@@ -886,8 +889,10 @@ function TrackObject(job, player, container, color, objectui, kind)
               }
           });
 
+
           // If the enter key is pressed, submit the new word
-          $(textinput).bind("enterKey",function(e){
+          $(textinput).unbind("enterKey"); // unbind any that are already bound
+          $(textinput).bind("enterKey", function(e){
             //search two parents up for a checkmark to click (this is pretty fragile!)
             // throws an error to the console, but still works
             // tried troubleshooting but cannot seem to locate the problem, possibly asynchronous execution?
@@ -896,6 +901,7 @@ function TrackObject(job, player, container, color, objectui, kind)
           });
 
           // If the escape key is pressed, submit the new word
+          $(textinput).unbind("escKey"); // unbind any that are already bound
           $(textinput).bind("escKey",function(e){
             //search two parents up for a checkmark to click (this is pretty fragile!)
             check = $( this.parentElement.parentElement ).find(".ui-icon-close")[0];
@@ -925,7 +931,7 @@ function TrackObject(job, player, container, color, objectui, kind)
             if ( new_word == magic_label )
             {
               // save a space, but could be the old word too?
-              new_word = " ";
+              new_word = fake_blank;
             }
 
             // remove check, close and add wrench when submited.
@@ -948,7 +954,7 @@ function TrackObject(job, player, container, color, objectui, kind)
         $(".close" + this.id + "word").click(function() {
             // if the word is still the magic string "", we can't let it
             // actually cancel. Instead, we should save a single space.
-            if ( $("#newWord").val() == magic_label && me.job.labels[me.label] == magic_label )
+            if ( me.job.labels[me.label] == magic_label )
             {
               alert('You must enter a word for the label. It cannot be left blank.');
               return;

@@ -629,12 +629,12 @@ function ui_submit(job, tracks, objectui)
     }
 
     // Go through the annotations and make sure that they are well-formed
-    var magic_label = ""; // magic label to ensure the annotations are not default
     for (trackid in tracks_non_deleted)
     {
       console.log(tracks_non_deleted[trackid].label);
       // Check that all annotations are something other than the default, magic: ""
-      if (objectui.job.labels[tracks_non_deleted[trackid].label] == magic_label){
+      if (objectui.job.labels[tracks_non_deleted[trackid].label] == magic_label ||
+          objectui.job.labels[tracks_non_deleted[trackid].label] == fake_blank){
         alert("At least one label is blank. Please click the wrench in the box on the right, and type in the word that was fingerspelled");
         return;
       }
