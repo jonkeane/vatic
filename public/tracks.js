@@ -1246,7 +1246,10 @@ function all_annotations()
     this.within_other_anno = function(time) {
       var output = false;
         for(var i=0; i<this.annotations.length; i++) {
-            if ( ( this.annotations[i].anno.start_frame != null && this.annotations[i].anno.start_frame < time ) && ( this.annotations[i].anno.end_frame != null && this.annotations[i].anno.end_frame > time ) )
+            if ( ( this.annotations[i].anno.start_frame != null &&
+                   this.annotations[i].anno.start_frame < time ) &&
+                 ( this.annotations[i].anno.end_frame != null &&
+                   this.annotations[i].anno.end_frame > time ) )
             {
               output = true;
             }

@@ -1,3 +1,7 @@
+// the magic label is used to detect when a brand new annotation has been made.
+var magic_label = "";
+var magic_label_id = null;
+
 function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, endbutton)
 {
     var me = this;
@@ -26,14 +30,14 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
     // for drawing lines (both getOffset() and connect())
     // from http://stackoverflow.com/questions/8672369/how-to-draw-a-line-between-two-divs
     this.getOffset = function( el ) {
-    var rect = el.getBoundingClientRect();
-    return {
-        left: rect.left + window.pageXOffset,
-        top: rect.top + window.pageYOffset,
-        width: rect.width || el.offsetWidth,
-        height: rect.height || el.offsetHeight
-    };
-}
+      var rect = el.getBoundingClientRect();
+      return {
+          left: rect.left + window.pageXOffset,
+          top: rect.top + window.pageYOffset,
+          width: rect.width || el.offsetWidth,
+          height: rect.height || el.offsetHeight
+      };
+    }
 
     this.connect = function(start_track, end_track, color, thickness) { // draw a line connecting elements
         var off1 = this.getOffset(start_track.handle[0]);
@@ -49,7 +53,7 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
         start_track.handle.append(htmlLine)
     }
 
-    this.update_button_ui = function()
+    this.update_button_ui = function(can_reset = false)
     {
       // check currentobject, and adjust button status accordingly
       // start
@@ -70,6 +74,16 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
         this.endenabled = true;
       }
 
+      // if the label is still the magic string, do not re-enable the buttons.
+
+      if( this.tracks.all_annos.active_anno() != null &&
+          this.tracks.all_annos.active_anno().has_start == true &&
+          this.tracks.all_annos.active_anno().has_end == true &&
+          this.job.labels[this.tracks.all_annos.active_anno().id] == magic_label &&
+          can_reset == false){
+            return;
+      }
+
       // if both ends exist, reset start and stop frames
       if(this.tracks.all_annos.active_anno() != null && this.tracks.all_annos.active_anno().has_start == true && this.tracks.all_annos.active_anno().has_end == true){
         this.startframe = job.start;
@@ -80,8 +94,8 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
         this.endenabled = true;
       }
 
-      // if there is no crruent_annotation, reset everything
-      // this is likely overkill, and is covered by the tests above.
+      // if there is no current_annotation, reset everything
+      // this is needed when someone deletes all of the annotations.
       if (this.tracks.all_annos.active_anno() == null ){
         this.startframe = job.start;
         this.endframe = job.stop;
@@ -159,10 +173,6 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
           this.currentcolor = this.tracks.all_annos.active_anno().color;
           this.drawer.color = this.currentcolor[0];
         }
-
-//        this.drawer.enable();
-
-//        this.button.button("option", "disabled", true);
 
         if ( start == 1 )
         {
@@ -255,8 +265,6 @@ function TrackObjectUI(startbutton, container, videoframe, job, player, tracks, 
     this.stopnewobject = function()
     {
         console.log("Finished new track object");
-
-//        ui_enable();
         tracks.drawingnew(false);
 
         this.objects.push(this.currentobject);
@@ -549,11 +557,13 @@ function TrackObject(job, player, container, color, objectui, kind)
       }
 
       // check that if both the start and the end annotations have been removed, null out annotation_obj
-      if(this.tracks.all_annos.active_anno() != null && this.tracks.all_annos.active_anno().has_start == null && this.tracks.all_annos.active_anno().has_end == null){
+      if( this.tracks.all_annos.active_anno() != null &&
+          this.tracks.all_annos.active_anno().has_start == null &&
+          this.tracks.all_annos.active_anno().has_end == null ){
         this.tracks.all_annos.annotation_active = null;
       }
 
-      this.objectui.update_button_ui(this);
+      this.objectui.update_button_ui();
 
         this.handle.slideUp(null, function() {
             me.handle.remove();
@@ -712,8 +722,6 @@ function TrackObject(job, player, container, color, objectui, kind)
         if ( this.tracks.all_annos.active_anno() == null){
           // There is no annotation currently being annotated, check if this job
           // has the magic label ""
-          var magic_label = "";
-          var magic_label_id = null;
           for (labelid in this.job.labels)
           {
             if (this.job.labels[labelid] == magic_label)
@@ -913,6 +921,13 @@ function TrackObject(job, player, container, color, objectui, kind)
             // grab new word from field
             new_word = $("#newWord").val();
 
+            // don't save the magic label accidentally
+            if ( new_word == magic_label )
+            {
+              // save a space, but could be the old word too?
+              new_word = " ";
+            }
+
             // remove check, close and add wrench when submited.
             // wrench goes wonky after a word is submitted once. Possibly due to id issues?
             me.wrench.show();
@@ -925,9 +940,21 @@ function TrackObject(job, player, container, color, objectui, kind)
             headerobj = $( me.handle[0] ).find(".trackobjectheader")[0];
             strongfield = $( headerobj ).find("input")[0];
             $( strongfield ).replaceWith("<strong>" + me.job.labels[me.label] + "</strong>");
+
+            // update the UI incase this is the first time editing a label
+            me.objectui.update_button_ui(can_reset = true);
         });
 
         $(".close" + this.id + "word").click(function() {
+            // if the word is still the magic string "", we can't let it
+            // actually cancel. Instead, we should save a single space.
+            if ( $("#newWord").val() == magic_label && me.job.labels[me.label] == magic_label )
+            {
+              alert('You must enter a word for the label. It cannot be left blank.');
+              return;
+            }
+
+
             // change back to text
             headerobj = $( me.handle[0] ).find(".trackobjectheader")[0];
             strongfield = $( headerobj ).find("input")[0];
@@ -955,7 +982,7 @@ function TrackObject(job, player, container, color, objectui, kind)
 
       // if there is an empty string, trigger the change word dialog.
       // Currently only pops up when the annotations is ended.
-      if(this.job.labels[this.label] == "" && this.kind == "end")
+      if(this.job.labels[this.label] == magic_label && this.kind == "end")
       {
         console.log("The empty string!");
         $(".change" + this.id + "word").click();
@@ -965,7 +992,7 @@ function TrackObject(job, player, container, color, objectui, kind)
     this.updateboxtext = function()
     {
         //var str = "<strong>" + this.job.labels[this.label] + " " + (this.id + 1) + "</strong>";
-        var str = "";
+        var str = magic_label;
 
         var count = 0;
         for (var i in this.job.attributes[this.track.label])
