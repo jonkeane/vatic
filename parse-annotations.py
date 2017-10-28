@@ -16,11 +16,11 @@ def parse_one_file(fl, dest_path):
     """
     fl file to parse
     dest_path the path to write the new csv to
-    
+
     """
     # filenames
     old_file = fl
-    base_file = os.path.basename(old_file) 
+    base_file = os.path.basename(old_file)
     base_file = os.path.splitext(base_file)[0]
     new_file = base_file + ".csv"
     new_file = os.path.join(dest_path, new_file)
@@ -31,7 +31,7 @@ def parse_one_file(fl, dest_path):
         annos = parse_json(old_file)
     else:
         raise Exception('Unknown file format on:'+old_file)
-            
+
     if len(annos) > 0:
         # only if there are annotations, write a csv
         with open(new_file, 'wb') as output_file:
@@ -48,10 +48,10 @@ def parse_text(filename):
     annos = []
     label_up = ""
     attr_up = ""
-    anno = {"label": None, "worker_id": None, "hit_id": None, 
+    anno = {"label": None, "worker_id": None, "hit_id": None,
     "assignment_id": None, "startframe": None, "endframe": None}
     with open(filename) as ssv:
-        for line in csv.reader(ssv, delimiter=" "): 
+        for line in csv.reader(ssv, delimiter=" "):
             # 10 means no annotation 11 means annotation
             # 1   Track ID. All rows with the same ID belong to the same path.
             # 2   xmin. The top left x-coordinate of the bounding box.
@@ -71,15 +71,18 @@ def parse_text(filename):
             if len(line) == 13:
                 # there is no annotation here.
                 continue
-            
+
             if label_up != line[9]:
                 # we've got a new label, move on
                 label_up = line[9]
                 anno["label"] = label_up
-                anno["worker_id"] = line[10]
-                anno["hit_id"] = line[11]
-                anno["assignment_id"] = line[12]
-                
+                worker_id = line[10]
+                anno["worker_id"] = worker_id
+                hit_id = line[11]
+                anno["hit_id"] = hit_id
+                assignment_id = line[12]
+                anno["assignment_id"] = assignment_id
+
             if attr_up != line[13]:
                 # we've got a new label
                 frame = int(line[5])
@@ -91,10 +94,11 @@ def parse_text(filename):
                 if anno["startframe"] is not None and anno["endframe"] is not None:
                     # if anno is full, move on
                     annos.append(anno)
-                    anno = {"label": label_up, "worker_id": None,
-                    "hit_id": None, "assignment_id": None, "startframe": None,
+                    anno = {"label": label_up, "worker_id": worker_id,
+                    "hit_id": hit_id, "assignment_id": assignment_id,
+                    "startframe": None,
                     "endframe": None}
-            # ensure there are no surprises    
+            # ensure there are no surprises
             if attr_up == "Start" and frame < anno["startframe"]:
                 raise Exception('There is a misordering of start frame annotations')
             if attr_up == "End" and frame < anno["endframe"]:
@@ -105,11 +109,11 @@ def parse_text(filename):
 def parse_json(filename):
     json_data=open(filename).read()
     data = json.loads(json_data)
-    
+
     annos = []
     label_up = ""
     attr_up = ""
-    for i in data: 
+    for i in data:
         label_data = data[i]
         label = label_data['label']
         worker_id = label_data['workers']
@@ -117,7 +121,7 @@ def parse_json(filename):
         assignment_id = label_data['assignmentid']
         startframe = None
         endframe = None
-        
+
         anno_data = label_data['boxes']
         attribs = [{"frame": x, "anno": anno_data[x]['attributes']} for x in anno_data]
         strt_end = set([x["anno"][0] for x in attribs if x["anno"] != []])
@@ -126,41 +130,41 @@ def parse_json(filename):
         strt_end = strt_end.pop()
         frames_annoed = [int(x["frame"]) for x in attribs if x["anno"] == [strt_end]]
         first_frame = min(frames_annoed)
-        
+
         if strt_end == "Start":
             startframe = first_frame
         elif strt_end == "End":
             endframe = first_frame
-            
+
         annos.append({
         "label": label,
-        "worker_id": worker_id, 
-        "hit_id": hit_id, 
-        "assignment_id": assignment_id, 
-        "startframe": startframe, 
+        "worker_id": worker_id,
+        "hit_id": hit_id,
+        "assignment_id": assignment_id,
+        "startframe": startframe,
         "endframe": endframe,
         "first_frame": first_frame})
-        
+
     hitassignments = [[x["worker_id"], x["hit_id"], x["assignment_id"]] for x in annos]
     hitassignments = set(tuple(row) for row in hitassignments)
-    
+
     new_annos = []
     # separate by worker/hit/assignment
     for worker, hit, assignment in hitassignments:
         sub_annos = [x for x in annos if x["worker_id"] == worker and
         x["hit_id"] == hit and x["assignment_id"] == assignment]
-        
+
         # order by first frame, since labels cannot overlap / span each other
         sub_annos.sort(key=lambda x: x['first_frame'])
-        
+
         for start, end in grouped(sub_annos, 2):
             if start['endframe'] is not None or end['startframe'] is not None:
                 raise Exception('There is an error attempting to chunk annotations.')
-            
+
             new_anno = start
             new_anno['endframe'] = end['endframe']
             del(new_anno['first_frame'])
-            
+
             new_annos.append(new_anno)
     return(new_annos)
 
@@ -168,7 +172,7 @@ if __name__ == '__main__':
     """
     The main loop that runs when you run the script
     """
-    # parse arguments        
+    # parse arguments
     parser = argparse.ArgumentParser(description='Process json output from vatic.')
     parser.add_argument('--output_dir', metavar='path-to-destination', help='Output directory')
     parser.add_argument('--make_elan', action='store_true', help='Make elan files')
@@ -182,47 +186,47 @@ if __name__ == '__main__':
         print("")
         print("Working on file: "+fl)
         annos, base_file = parse_one_file(fl, dest_path)
-        
+
         if args.make_elan:
             if args.videos_location is None:
                 vids_loc = "./"
             else:
                 vids_loc = args.videos_location
-                
+
             vid_loc = []
             # find the appropriate video
             for dirpath, subdirs, files in os.walk(vids_loc, topdown=False, followlinks=False):
                 for x in files:
                     if re.match(base_file, x):
                         vid_loc.append(os.path.join(dirpath, x))
-                    
+
             # make temp dir for elan file and video
             temp_dir = os.path.join(tempfile.gettempdir(), base_file)
             if os.path.exists(temp_dir):
                 shutil.rmtree(temp_dir)
             os.makedirs(temp_dir)
-            
+
             # check if there is more than or less than one matching video
             if len(vid_loc) > 1:
                 print("It looks like there is more than one video that matches this filename. Please try specifying a more specific location.")
             if len(vid_loc) < 1:
                 print("There is no video that matches this filename. Creating an elan file, but the video will have to be manually linked.")
-            else: 
+            else:
                 # copy the videos if it's the only one.
                 old_vid_loc = vid_loc
                 for vid in old_vid_loc:
                     vid_loc = [os.path.join(temp_dir, base_file)]
                     shutil.copyfile(vid, vid_loc[0])
-                
+
             # create elan annotations per annotation found by tier for worker
             hitassignments = [[x["worker_id"], x["hit_id"], x["assignment_id"]] for x in annos]
             hitassignments = set(tuple(row) for row in hitassignments)
-            
+
             tiers_to_add = []
             for worker, hit, assignment in hitassignments:
                 sub_annos = [x for x in annos if x["worker_id"] == worker and
                 x["hit_id"] == hit and x["assignment_id"] == assignment]
-                
+
                 annos_to_add = []
                 for anno in sub_annos:
                     annos_to_add.append(pyelan.annotation(
@@ -232,7 +236,7 @@ if __name__ == '__main__':
                         )
                 tier_label = 'wrkr:'+worker+" hit:"+hit+" assign:"+assignment
                 tiers_to_add.append(pyelan.tier(tier_label, annos_to_add))
-            
+
             # make tiers and write the elan file
             allTiers = pyelan.tierSet(media=vid_loc, tiers=tiers_to_add)
             elanOut = os.path.join(temp_dir,'.'.join([base_file,"eaf"]))
@@ -243,12 +247,9 @@ if __name__ == '__main__':
             except:
                 pass
             out.write(elanOut)
-            
+
             # zip up the temp dir
             shutil.make_archive(os.path.join(dest_path, base_file), 'zip', temp_dir)
-            
+
             shutil.rmtree(temp_dir)
             print("Wrote the elan file in the archive: " + os.path.join(dest_path, base_file) + ".zip")
-
-                    
-
