@@ -1205,6 +1205,7 @@ class purgeHITs(Command):
             else:
                 hit.published = False
                 print("Disabled HIT {0}".format(hit.hitid))
+        session.commit()
             
             
             
