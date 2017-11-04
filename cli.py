@@ -5,6 +5,7 @@ import argparse
 import config
 import shutil
 from turkic.cli import handler, importparser, Command, LoadCommand
+import turkic.api
 from turkic.database import session
 import sqlalchemy
 import random
@@ -1177,3 +1178,34 @@ class listvideos(Command):
                 test = test.filter(Job.workerid == args.worker)
 
             self.print_one_video(test, video)
+            
+            
+@handler("Purge all HITs", "purge")
+class purgeHITs(Command):
+    def setup(self):
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--all", action="store_true", default=True)
+        return parser
+    
+    def __call__(self, args):
+        hits = session.query(turkic.models.HIT)
+        hits = hits.filter(turkic.models.HIT.published == True)
+        # reeeeaaaally?
+        resp = raw_input("Disable and delete all available HITs? ").lower()
+        if resp not in ["yes", "y"]:
+            print("Goodbye")
+            return
+        
+        print("Disabling published hits")
+        for hit in hits:
+            try:
+                resp = turkic.api.server.disable(hitid = hit.hitid)
+            except turkic.api.CommunicationError:
+                print("HIT {0} is not found on MTurk, ignoring".format(hit.hitid))
+            else:
+                hit.published = False
+                print("Disabled HIT {0}".format(hit.hitid))
+            
+            
+            
+
