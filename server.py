@@ -46,12 +46,28 @@ def getjob(id, verified, assignmentid = None, idtype = None):
         # get the Assignments where this mturk hitid is used
         query = session.query(Job).filter(turkic.models.Assignment.hitid == id)
         # filter to be only those that haven't been completed / assigned already
-        query = query.filter(turkic.models.Assignment.assignmentid == None)
+        empty_assigns = query.filter(turkic.models.Assignment.assignmentid == None)
         # grab the first one.
-        job = query.first()
-        # if there are no more jobs, fail gracefully
+        job = empty_assigns.first()
+
         if job is None:
-            return({"error_msg": "<p>There don't appear to be any more assignments associated with this HIT. </p> <p>To try again refresh your browser window or try opening a new window and searching for 'ASL fingerspelling' at the main HIT search screen.</p>"})
+            # if there are no more jobs, fail gracefully by automatically creating a
+            # new blank(ish) assignment that will be filled in. This will mean there
+            # will be more than the assigned number of annotations, but it prevents
+            # the user from being presented with an error.
+            print("There are no incomplete assignments, creating a new one to store annotations in.")
+
+            try:
+                template = query.first()
+                # make Job, make assignments
+                job = Job(segment = template.segment, group = template.group, hit = template.hit)
+                session.add(job)
+                session.commit()
+                print("Created a new job/assignemnt id of {0}".format(job.id))
+            except:
+                # error gracefully if that didn't work
+                return({"error_msg": "<p>There don't appear to be any more assignments associated with this HIT. </p> <p>To try again refresh your browser window or try opening a new window and searching for 'ASL fingerspelling' at the main HIT search screen.</p>"})
+
 
         print("Got an mturk hitid of " + id + ". Using the first available jobid connected to that hit: " + str(job.id))
     else:
