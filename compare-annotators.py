@@ -1,6 +1,6 @@
-# python compareAnnotators.py path/to/folder/ path/to/folder/
+# python compareAnnotators.py path/to/folder/ path/to/folder/ --output annotator_distance.csv
 
-# each folder should have all and only the elan files to compare against each
+# Each folder should have all and only the elan files to compare against each
 # other. If the names are too different within a folder, a warning will be
 # issued.
 
