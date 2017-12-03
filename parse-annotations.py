@@ -4,7 +4,7 @@
 
 
 import csv, sys, os, re, argparse, shutil, tempfile, json, pandas
-import pyelan.pyelan as pyelan
+import pyelan 
 
 from itertools import izip
 

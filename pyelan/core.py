@@ -123,7 +123,11 @@ class tierSet:
     """A Tier set either from a file, or from media, tiers, and a pathELAN"""
     def __init__(self, file=None, media=[None], linkedFiles=[None], relLinkedFiles=[None], tiers=None, pathELAN=None):
         if file:
-            tiers,media,relMedia,linkedFiles,relLinkedFiles = self.extractTiers(file)
+            try:
+                tiers,media,relMedia,linkedFiles,relLinkedFiles = self.extractTiers(file)
+            except:
+                print("Something went wrong extracting tiers from file {0}, are you sure it is an ELAN file?".format(file))
+                raise
             pathELAN = os.path.dirname(file)
         self.media = media
         self.linkedFiles = linkedFiles
@@ -302,7 +306,7 @@ class tierSet:
 
                 #----------------------------------------------------
                 for anno in tier.annotations:
-                    if verbose: print "Working on time slot: "+str(tslt)+" and annotation: "+str(anot)
+                    if verbose: print("Working on time slot: {0} and annotation: {1}".format(str(tslt), str(anot)))
                     tslt += 1
                     time_slot_id0 = 'ts' + workingTier + str(tslt)
                     time_value0 = str(anno.begin)
