@@ -44,7 +44,7 @@ if __name__ == '__main__':
     for folder in elan_files.keys():
         # use keys to iterate over so that we don't accidentally manipulate elan_files
         files = list(elan_files[folder])
-        if length(files) > 1:
+        if len(files) > 1:
             ref_file = files.pop(0)
             scores = []
             for comp_file in files:
