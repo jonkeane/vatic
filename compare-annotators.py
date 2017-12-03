@@ -14,7 +14,7 @@ try:
     sklearn_avail = True
 except ImportError:
     print("You must install scikit-learn before running this script.")
-    raise()
+    raise
 
 if __name__ == '__main__':
 
@@ -44,21 +44,22 @@ if __name__ == '__main__':
     for folder in elan_files.keys():
         # use keys to iterate over so that we don't accidentally manipulate elan_files
         files = list(elan_files[folder])
-        ref_file = files.pop(0)
-        scores = []
-        for comp_file in files:
-            ref = os.path.basename(ref_file)
-            comp = os.path.basename(comp_file)
-            n_char = float(max(len(ref), len(comp)))
-            scores.append(levenshtein(ref, comp)/n_char)
-        if max(scores) > lev_dist_limit:
-            files_out = files
-            files_out.append(ref_file)
-            warn_text = """
-The filenames in the folder {0} differ substantially. Please check that they all reference the same clip. Files found:
-{1}
-            """
-            warnings.warn(warn_text.format(folder, ",\n".join(files_out)))
+        if length(files) > 1:
+            ref_file = files.pop(0)
+            scores = []
+            for comp_file in files:
+                ref = os.path.basename(ref_file)
+                comp = os.path.basename(comp_file)
+                n_char = float(max(len(ref), len(comp)))
+                scores.append(levenshtein(ref, comp)/n_char)
+            if max(scores) > lev_dist_limit:
+                files_out = files
+                files_out.append(ref_file)
+                warn_text = """
+    The filenames in the folder {0} differ substantially. Please check that they all reference the same clip. Files found:
+    {1}
+                """
+                warnings.warn(warn_text.format(folder, ",\n".join(files_out)))
 
     # score each folder
     scores_out = []
