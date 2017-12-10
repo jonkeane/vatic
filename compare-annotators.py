@@ -5,7 +5,7 @@
 # issued.
 
 import sys, re, os, itertools, collections, imp, warnings, csv, argparse
-from pyelan.distance import levenshtein, compare_files
+import pyelan.pyelan as pyelan
 
 # ensure that sklearn is available
 try:
@@ -64,7 +64,7 @@ if __name__ == '__main__':
     # score each folder
     scores_out = []
     for folder, files in elan_files.iteritems():
-        scores_out.extend(compare_files(files, frame_min = 0, frame_max = 1800))
+        scores_out.extend(pyelan.compare_files(files, frame_min = 0, frame_max = 1800))
 
     # write scores out in a csv
     with open(args.output,'wb') as fou:
