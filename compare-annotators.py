@@ -1,3 +1,4 @@
+#! /usr/bin/python
 # python compareAnnotators.py path/to/folder/ path/to/folder/ --output annotator_distance.csv
 
 # Each folder should have all and only the elan files to compare against each
