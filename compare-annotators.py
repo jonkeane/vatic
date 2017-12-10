@@ -5,7 +5,7 @@
 # issued.
 
 import sys, re, os, itertools, collections, imp, warnings, csv, argparse
-import pyelan.pyelan as pyelan
+import pyelan
 
 # ensure that sklearn is available
 try:
