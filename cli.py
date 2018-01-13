@@ -1196,15 +1196,23 @@ class purgeHITs(Command):
             print("Goodbye")
             return
         
-        print("Disabling published hits")
+        print("Disposing published hits")
         for hit in hits:
             try:
-                resp = turkic.api.server.disable(hitid = hit.hitid)
+                resp = turkic.api.server.dispose(hitid = hit.hitid)
             except turkic.api.CommunicationError:
-                print("HIT {0} is not found on MTurk, ignoring".format(hit.hitid))
+                print("Attempting to expire HIT {0}".format(hit.hitid))
+                resp = turkic.api.server.expire(hitid = hit.hitid)
+                try:
+                    resp = turkic.api.server.dispose(hitid = hit.hitid)
+                except turkic.api.CommunicationError:
+                    print("There was a problem with HIT {0}, ignoring".format(hit.hitid))
+                else:
+                    hit.published = False
+                    print("Expired and disposed HIT {0}".format(hit.hitid))
             else:
                 hit.published = False
-                print("Disabled HIT {0}".format(hit.hitid))
+                print("Disposed HIT {0}".format(hit.hitid))
         session.commit()
             
             
