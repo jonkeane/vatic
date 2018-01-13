@@ -1189,7 +1189,9 @@ class purgeHITs(Command):
     
     def __call__(self, args):
         hits = session.query(turkic.models.HIT)
+        # grab only hits that are published and haven't already been purged
         hits = hits.filter(turkic.models.HIT.published == True)
+        hits = hits.filter(turkic.models.HIT.purged == False)
         # reeeeaaaally?
         resp = raw_input("Disable and delete all available HITs? ").lower()
         if resp not in ["yes", "y"]:
@@ -1208,10 +1210,10 @@ class purgeHITs(Command):
                 except turkic.api.CommunicationError:
                     print("There was a problem purging HIT {0}. Make sure that it is not currently being annotated. You may need to delete it manually".format(hit.hitid))
                 else:
-                    hit.published = False
+                    hit.purged = True
                     print("Expired and disposed HIT {0}".format(hit.hitid))
             else:
-                hit.published = False
+                hit.purged = True
                 print("Disposed HIT {0}".format(hit.hitid))
         session.commit()
             
