@@ -1206,7 +1206,7 @@ class purgeHITs(Command):
                 try:
                     resp = turkic.api.server.dispose(hitid = hit.hitid)
                 except turkic.api.CommunicationError:
-                    print("There was a problem with HIT {0}, ignoring".format(hit.hitid))
+                    print("There was a problem purging HIT {0}. Make sure that it is not currently being annotated. You may need to delete it manually".format(hit.hitid))
                 else:
                     hit.published = False
                     print("Expired and disposed HIT {0}".format(hit.hitid))
