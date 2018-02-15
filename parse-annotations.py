@@ -69,9 +69,26 @@ def parse_text(filename):
             # 13  assignmentid. The assignment id (this should be different for each worker)
             # 14+ attributes. Each column after this is an attribute.
             if len(line) == 13:
-                # there is no annotation here.
-                continue
-
+                # if there are both an start and end frame, so write and reset everything
+                if anno["startframe"] is not None and anno["endframe"] is not None:
+                    # if anno is full, move on
+                    annos.append(anno)
+                    label_up = ""
+                    attr_up = ""
+                    worker_id = ""
+                    hit_id = ""
+                    assignment_id = ""
+                    # anno = {"label": label_up, "worker_id": worker_id,
+                    # "hit_id": hit_id, "assignment_id": assignment_id,
+                    anno = {"label": None, "worker_id": None,
+                    "hit_id": None, "assignment_id": None,
+                    "startframe": None,
+                    "endframe": None}
+                    continue
+                else:
+                    # there is no annotation here, move on
+                    continue
+                
             if label_up != line[9]:
                 # we've got a new label, move on
                 label_up = line[9]
@@ -91,18 +108,14 @@ def parse_text(filename):
                     anno["startframe"] = frame
                 if attr_up == "End":
                     anno["endframe"] = frame
-                if anno["startframe"] is not None and anno["endframe"] is not None:
-                    # if anno is full, move on
-                    annos.append(anno)
-                    anno = {"label": label_up, "worker_id": worker_id,
-                    "hit_id": hit_id, "assignment_id": assignment_id,
-                    "startframe": None,
-                    "endframe": None}
+            
             # ensure there are no surprises
             if attr_up == "Start" and frame < anno["startframe"]:
                 raise Exception('There is a misordering of start frame annotations')
             if attr_up == "End" and frame < anno["endframe"]:
                 raise Exception('There is a misordering of end frame annotations')
+        # append one last time
+        annos.append(anno)
     return(annos)
 
 
