@@ -48,6 +48,7 @@ def parse_text(filename):
     annos = []
     label_up = ""
     attr_up = ""
+    frame = int(0)
     anno = {"label": None, "worker_id": None, "hit_id": None,
     "assignment_id": None, "startframe": None, "endframe": None}
     with open(filename) as ssv:
@@ -68,7 +69,11 @@ def parse_text(filename):
             #     though sometimes might be different because of the training clip substitution)
             # 13  assignmentid. The assignment id (this should be different for each worker)
             # 14+ attributes. Each column after this is an attribute.
-            if len(line) == 13:
+
+            old_frame = frame
+            frame = int(line[5])
+            if old_frame > frame:
+                # only check when there's a new group of frames
                 # if there are both an start and end frame, so write and reset everything
                 if anno["startframe"] is not None and anno["endframe"] is not None:
                     # if anno is full, move on
@@ -85,9 +90,10 @@ def parse_text(filename):
                     "startframe": None,
                     "endframe": None}
                     continue
-                else:
-                    # there is no annotation here, move on
-                    continue
+
+            if len(line) == 13:
+                # there is no annotation here, move on
+                continue
                 
             if label_up != line[9]:
                 # we've got a new label, move on
@@ -102,7 +108,6 @@ def parse_text(filename):
 
             if attr_up != line[13]:
                 # we've got a new label
-                frame = int(line[5])
                 attr_up = line[13]
                 if attr_up == "Start":
                     anno["startframe"] = frame
