@@ -119,8 +119,9 @@ def parse_text(filename):
                 raise Exception('There is a misordering of start frame annotations')
             if attr_up == "End" and frame < anno["endframe"]:
                 raise Exception('There is a misordering of end frame annotations')
-        # append one last time
-        annos.append(anno)
+        # append one last time if there is a full annos
+        if anno["startframe"] is not None and anno["endframe"] is not None:
+            annos.append(anno)
     return(annos)
 
 
