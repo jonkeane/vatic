@@ -185,7 +185,6 @@ def parse_json(filename):
                 end = end_new
 
             if start['endframe'] is not None or end['startframe'] is not None:
-                import pdb; pdb.set_trace()
                 raise Exception('There is an error attempting to chunk annotations.')
 
             new_anno = start
