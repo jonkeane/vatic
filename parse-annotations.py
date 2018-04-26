@@ -6,7 +6,7 @@
 import csv, sys, os, re, argparse, shutil, tempfile, json, pandas
 import pyelan
 
-from itertools import izip
+from itertools import izip, groupby
 
 def grouped(iterable, n):
     "s -> (s0,s1,s2,...sn-1), (sn,sn+1,sn+2,...s2n-1), (s2n,s2n+1,s2n+2,...s3n-1), ..."
@@ -135,6 +135,7 @@ def parse_json(filename):
     for i in data:
         label_data = data[i]
         label = label_data['label']
+        label_id = int(i)
         worker_id = label_data['workers']
         hit_id = label_data['hitid']
         assignment_id = label_data['assignmentid']
@@ -157,6 +158,7 @@ def parse_json(filename):
 
         annos.append({
         "label": label,
+        "label_id": label_id,
         "worker_id": worker_id,
         "hit_id": hit_id,
         "assignment_id": assignment_id,
@@ -174,7 +176,7 @@ def parse_json(filename):
         x["hit_id"] == hit and x["assignment_id"] == assignment]
 
         # order by first frame, since labels cannot overlap / span each other
-        sub_annos.sort(key=lambda x: (x['label'], x['first_frame']))
+        sub_annos.sort(key=lambda x: (x['label'], x['label_id']))
 
         for start, end in grouped(sub_annos, 2):
             if start['endframe'] is not None and end['startframe'] is not None:
@@ -193,7 +195,28 @@ def parse_json(filename):
             del(new_anno['first_frame'])
 
             new_annos.append(new_anno)
-    return(new_annos)
+            
+    # now check if there's any overlap for the same worker, if so something 
+    # might have gone wrong with vatic, so add a suffix
+    results = list()
+
+    for group, items in groupby(new_annos, lambda x: 
+        (x['label'], x['worker_id'], x['assignment_id'])):
+        items = list(items)
+        if len(items) > 1:
+            items.sort(key=lambda x: x['startframe'])
+            for i in range(1, len(items)):
+                range_one = range(items[i-1]["startframe"], items[i-1]["endframe"])
+                range_two = range(items[i]["startframe"], items[i]["endframe"])
+                range_one = set(range_one)
+                overlap = range_one.intersection(range_two)
+                if len(overlap) > 0:
+                    items[i]["worker_id"] = items[i]["worker_id"]+"-alt"
+                    items[i]["assignment_id"] = items[i]["assignment_id"]+"-alt"
+                    items[i]["hit_id"] = items[i]["hit_id"]+"-alt"
+                
+        results.extend(items)
+    return(results)
 
 if __name__ == '__main__':
     """
