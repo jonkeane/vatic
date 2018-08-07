@@ -99,8 +99,8 @@ class load(LoadCommand):
         return 1.00
 
     def duration(self, args):
-    # 1.5 hours
-	   return 5400
+    # 2.0 hours
+	   return 7200
 
     def lifetime(self, args):
 	# 60 days
