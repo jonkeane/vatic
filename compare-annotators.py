@@ -7,6 +7,7 @@
 
 import sys, re, os, itertools, collections, imp, warnings, csv, argparse
 import pyelan
+from pyelan.distance import *
 
 # ensure that sklearn is available
 try:
