@@ -10,7 +10,28 @@ import re
 import turkic.models
 
 import logging
+
+# setup handler
+ch = logging.StreamHandler(sys.stdout)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+
+# setup the vatic parent logger
+logger_vatic = logging.getLogger("vatic")
+logger_vatic.setLevel(logging.DEBUG)
+logger_vatic.addHandler(ch)
+
+# setup the turkic parent logger
+logger_turkic = logging.getLogger("turkic")
+logger_turkic.setLevel(logging.DEBUG)
+logger_turkic.addHandler(ch)
+
+# instantiate the server logger
 logger = logging.getLogger("vatic.server")
+
+# send test to the log to ensure which level is running.
+logger.error("This is a 40 (error)")
+logger.debug("This is a 10 (debug)")
 
 @handler()
 def getjob(id, verified, assignmentid = None, idtype = None):
