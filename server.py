@@ -26,6 +26,12 @@ logger_turkic = logging.getLogger("turkic")
 logger_turkic.setLevel(logging.DEBUG)
 logger_turkic.addHandler(ch)
 
+# setup the turkic model logger (to ensure they are being logged)
+logger_turkic_models = logging.getLogger("turkic.models")
+logger_turkic_models.setLevel(logging.DEBUG)
+logger_turkic_models.addHandler(ch)
+
+
 # instantiate the server logger
 logger = logging.getLogger("vatic.server")
 
