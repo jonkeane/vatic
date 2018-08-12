@@ -230,15 +230,15 @@ def newlabel(id, postdata):
     logger.debug(video.labels)
     attributes = {}
     for lbl in video.labels:
-        logger.debug(lbl.id)
-        logger.debug(int(id))
+        # logger.debug(lbl.id)
+        # logger.debug(int(id))
         if lbl.id == int(id):
             # only copy attributes from the old label id
             attributes[lbl.id] = dict((a.id, a.text) for a in lbl.attributes)
 
     newAttributes = attributes[int(id)]
 
-    logger.debug('still working4')
+    logger.debug('still working')
     logger.debug(newAttributes)
     for attributeText in newAttributes.values():
         attribute = Attribute(text = attributeText)
@@ -281,27 +281,27 @@ def validatejob(id, tracks):
     paths = readpaths(tracks)
     logger.debug(job)
 
-    logger.debug("Here are some paths!")
-    logger.debug(paths)
-    logger.debug(job.trainingjob.paths)
-    logger.debug("New paths")
-    for pth in paths:
-        logger.debug("\tid: "+format(pth.id))
-        logger.debug("\tjobid: "+format(pth.jobid))
-        logger.debug("\tjob: "+format(pth.job))
-        logger.debug("\tlabelid: "+format(pth.labelid))
-        logger.debug("\tlabel text: "+format(pth.label.text))
-
-    logger.debug("Training paths")
-    for pth in job.trainingjob.paths:
-        logger.debug("\tid: "+format(pth.id))
-        logger.debug("\tjobid: "+format(pth.jobid))
-        logger.debug("\tjob: "+format(pth.job))
-        logger.debug("\tlabelid: "+format(pth.labelid))
-        logger.debug("\tlabel: "+format(pth.label))
-        logger.debug("\tlabel text: "+format(pth.label.text))
-
-    logger.debug(format(job.trainingjob.validator))
+    # logger.debug("Here are some paths!")
+    # logger.debug(paths)
+    # logger.debug(job.trainingjob.paths)
+    # logger.debug("New paths")
+    # for pth in paths:
+    #     logger.debug("\tid: "+format(pth.id))
+    #     logger.debug("\tjobid: "+format(pth.jobid))
+    #     logger.debug("\tjob: "+format(pth.job))
+    #     logger.debug("\tlabelid: "+format(pth.labelid))
+    #     logger.debug("\tlabel text: "+format(pth.label.text))
+    #
+    # logger.debug("Training paths")
+    # for pth in job.trainingjob.paths:
+    #     logger.debug("\tid: "+format(pth.id))
+    #     logger.debug("\tjobid: "+format(pth.jobid))
+    #     logger.debug("\tjob: "+format(pth.job))
+    #     logger.debug("\tlabelid: "+format(pth.labelid))
+    #     logger.debug("\tlabel: "+format(pth.label))
+    #     logger.debug("\tlabel text: "+format(pth.label.text))
+    #
+    # logger.debug(format(job.trainingjob.validator))
 
 
     return job.trainingjob.validator(paths, job.trainingjob.paths)
