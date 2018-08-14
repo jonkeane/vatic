@@ -771,8 +771,8 @@ function ui_submit(job, tracks, objectui)
         note.html("Saving...");
         savejob(function() {
             mturk_submit(function(redirect) {
-                note.html("Saved!");
                 finishsubmit(redirect);
+                note.html("Saved!");
             });
         });
     }
