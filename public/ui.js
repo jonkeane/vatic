@@ -768,7 +768,7 @@ function ui_submit(job, tracks, objectui)
     }
     else
     {
-        note.html("Saving...");
+        note.html("Saving... Please wait...");
         savejob(function() {
             mturk_submit(function(redirect) {
                 finishsubmit(redirect);
