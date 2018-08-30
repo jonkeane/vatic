@@ -772,7 +772,10 @@ function ui_submit(job, tracks, objectui)
         savejob(function() {
             mturk_submit(function(redirect) {
                 finishsubmit(redirect);
-                // note.html("Saved!");
+                if (mturk_isoffline())
+                {
+                    note.html("Saved!");
+                }
             });
         });
     }
