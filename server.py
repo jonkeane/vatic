@@ -18,17 +18,17 @@ ch.setFormatter(formatter)
 
 # setup the vatic parent logger
 logger_vatic = logging.getLogger("vatic")
-logger_vatic.setLevel(logging.DEBUG)
+logger_vatic.setLevel(logging.ERROR)
 logger_vatic.addHandler(ch)
 
 # setup the turkic parent logger
 logger_turkic = logging.getLogger("turkic")
-logger_turkic.setLevel(logging.DEBUG)
+logger_turkic.setLevel(logging.ERROR)
 logger_turkic.addHandler(ch)
 
 # setup the turkic model logger (to ensure they are being logged)
 logger_turkic_models = logging.getLogger("turkic.models")
-logger_turkic_models.setLevel(logging.DEBUG)
+logger_turkic_models.setLevel(logging.ERROR)
 logger_turkic_models.addHandler(ch)
 
 
