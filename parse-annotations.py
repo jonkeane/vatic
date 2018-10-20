@@ -94,7 +94,7 @@ def parse_text(filename):
             if len(line) == 13:
                 # there is no annotation here, move on
                 continue
-                
+
             if label_up != line[9]:
                 # we've got a new label, move on
                 label_up = line[9]
@@ -113,7 +113,7 @@ def parse_text(filename):
                     anno["startframe"] = frame
                 if attr_up == "End":
                     anno["endframe"] = frame
-            
+
             # ensure there are no surprises
             if attr_up == "Start" and frame < anno["startframe"]:
                 raise Exception('There is a misordering of start frame annotations')
@@ -175,8 +175,9 @@ def parse_json(filename):
         sub_annos = [x for x in annos if x["worker_id"] == worker and
         x["hit_id"] == hit and x["assignment_id"] == assignment]
 
-        # order by first frame, since labels cannot overlap / span each other
-        sub_annos.sort(key=lambda x: (x['label'], x['label_id']))
+        # order by labels and then first frame (not start frame) cannot overlap
+        # or span each other
+        sub_annos.sort(key=lambda x: (x['label'], x['first_frame']))
 
         for start, end in grouped(sub_annos, 2):
             if start['endframe'] is not None and end['startframe'] is not None:
@@ -195,12 +196,12 @@ def parse_json(filename):
             del(new_anno['first_frame'])
 
             new_annos.append(new_anno)
-            
-    # now check if there's any overlap for the same worker, if so something 
+
+    # now check if there's any overlap for the same worker, if so something
     # might have gone wrong with vatic, so add a suffix
     results = list()
 
-    for group, items in groupby(new_annos, lambda x: 
+    for group, items in groupby(new_annos, lambda x:
         (x['label'], x['worker_id'], x['assignment_id'])):
         items = list(items)
         if len(items) > 1:
@@ -214,7 +215,7 @@ def parse_json(filename):
                     items[i]["worker_id"] = items[i]["worker_id"]+"-alt"
                     items[i]["assignment_id"] = items[i]["assignment_id"]+"-alt"
                     items[i]["hit_id"] = items[i]["hit_id"]+"-alt"
-                
+
         results.extend(items)
     return(results)
 
