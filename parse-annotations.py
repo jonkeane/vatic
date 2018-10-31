@@ -179,6 +179,23 @@ def parse_json(filename):
         # or span each other
         sub_annos.sort(key=lambda x: (x['label'], x['first_frame']))
 
+        # check that this sort worked (sometimes each annotation is doubled 
+        # within the same annotator, in that case we fall back to using ids, 
+        # even though those are less reliable generally since some ids might be 
+        # deleted)
+        for start, end in grouped(sub_annos, 2):
+            if start['endframe'] is not None and end['startframe'] is not None:
+                # a weird case where the start and stop are the same frame, and
+                # were accidently misordered, flip and continue
+                start_new = end
+                end_new = start
+                start = start_new
+                end = end_new
+
+            if start['endframe'] is not None or end['startframe'] is not None:
+                sub_annos.sort(key=lambda x: (x['label'], x['label_id']))
+                break
+
         for start, end in grouped(sub_annos, 2):
             if start['endframe'] is not None and end['startframe'] is not None:
                 # a weird case where the start and stop are the same frame, and
